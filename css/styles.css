@@ -38,6 +38,17 @@
   --home-maxw: 1500px;
   --font-body: "Quicksand", system-ui, sans-serif;
   --font-head: "Poppins", "Quicksand", sans-serif;
+  --font-work-read: "Courage Kid", "Quicksand", cursive, sans-serif;
+}
+
+@font-face {
+  font-family: "Courage Kid";
+  src: url("../assets/fonts/Courage-Kid.woff") format("woff"),
+       url("../assets/fonts/Courage-Kid.otf") format("opentype"),
+       url("../assets/fonts/Courage-Kid.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -4189,8 +4200,8 @@ body.locked { overflow: hidden; }
   );
 }
 .work-read-title {
-  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
-  font-weight: 700;
+  font-family: var(--font-work-read);
+  font-weight: 400;
   font-size: clamp(1.85rem, 4.5vw, 2.75rem);
   margin-bottom: 8px;
   text-align: center;
@@ -4200,9 +4211,9 @@ body.locked { overflow: hidden; }
   text-align: center;
   margin-bottom: clamp(12px, 2vw, 16px);
   color: var(--ink-soft);
-  font-weight: 600;
-  font-size: 0.95rem;
-  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(1rem, 2vw, 1.12rem);
+  font-family: var(--font-work-read);
 }
 .work-read-rating-wrap {
   margin: clamp(32px, 5vw, 48px) auto 0;
@@ -4226,12 +4237,12 @@ body.locked { overflow: hidden; }
   line-height: 1.4;
 }
 .work-read-text {
-  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+  font-family: var(--font-work-read);
   font-weight: 400;
-  font-size: clamp(1.05rem, 2.2vw, 1.32rem);
-  line-height: 1.9;
+  font-size: clamp(1.12rem, 2.4vw, 1.42rem);
+  line-height: 1.85;
   color: var(--ink);
-  letter-spacing: 0.015em;
+  letter-spacing: 0.02em;
 }
 .work-read-text p { margin-bottom: 1.2em; }
 .work-read-text p:last-child { margin-bottom: 0; }
