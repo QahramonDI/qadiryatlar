@@ -1162,13 +1162,24 @@ function bindPopularSlider({ scroller: scrollerSel, prev: prevSel, next: nextSel
   const scroller = $(scrollerSel);
   if (!scroller) return;
 
+  const DRAG_THRESHOLD = 10;
+  if (!scroller._popSlider) scroller._popSlider = { skipClick: false };
+  const state = scroller._popSlider;
+  state.onItemClick = onItemClick;
+
+  const activateItem = (el) => {
+    if (el) state.onItemClick?.(el);
+  };
+
   if (!scroller.dataset.bound) {
     scroller.dataset.bound = "1";
     let isDown = false;
     let startX = 0;
+    let startY = 0;
     let startLeft = 0;
     let dragMoved = false;
     let activePointerId = null;
+    let downCard = null;
 
     const scrollByCard = (dir) => {
       const card = $(itemSelector, scroller);
@@ -1185,7 +1196,8 @@ function bindPopularSlider({ scroller: scrollerSel, prev: prevSel, next: nextSel
     const onPointerMove = (e) => {
       if (!isDown || (activePointerId != null && e.pointerId !== activePointerId)) return;
       const dx = e.clientX - startX;
-      if (Math.abs(dx) > 4) {
+      const dy = e.clientY - startY;
+      if (Math.hypot(dx, dy) > DRAG_THRESHOLD) {
         if (!dragMoved) {
           dragMoved = true;
           scroller.classList.add("dragging");
@@ -1197,13 +1209,20 @@ function bindPopularSlider({ scroller: scrollerSel, prev: prevSel, next: nextSel
 
     const stopDrag = (e) => {
       if (activePointerId != null && e?.pointerId != null && e.pointerId !== activePointerId) return;
+      const wasDrag = dragMoved;
+      if (!wasDrag && downCard) {
+        activateItem(downCard);
+        state.skipClick = true;
+        setTimeout(() => { state.skipClick = false; }, 0);
+      }
       isDown = false;
       activePointerId = null;
+      downCard = null;
+      dragMoved = false;
       scroller.classList.remove("dragging");
       document.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("pointerup", stopDrag);
       document.removeEventListener("pointercancel", stopDrag);
-      if (dragMoved) setTimeout(() => { dragMoved = false; }, 100);
     };
 
     scroller.addEventListener("pointerdown", (e) => {
@@ -1213,24 +1232,31 @@ function bindPopularSlider({ scroller: scrollerSel, prev: prevSel, next: nextSel
       dragMoved = false;
       activePointerId = e.pointerId;
       startX = e.clientX;
+      startY = e.clientY;
       startLeft = scroller.scrollLeft;
+      downCard = e.target.closest(itemSelector);
       scroller.setPointerCapture?.(e.pointerId);
       document.addEventListener("pointermove", onPointerMove, { passive: false });
       document.addEventListener("pointerup", stopDrag);
       document.addEventListener("pointercancel", stopDrag);
     });
-
-    scroller.addEventListener("click", (e) => {
-      if (dragMoved) {
-        e.preventDefault();
-        e.stopPropagation();
-        dragMoved = false;
-        return;
-      }
-      const card = e.target.closest(itemSelector);
-      if (card) onItemClick?.(card);
-    });
   }
+
+  $$(itemSelector, scroller).forEach((el) => {
+    if (el.dataset.popClickBound) return;
+    el.dataset.popClickBound = "1";
+    el.setAttribute("role", "button");
+    if (!el.hasAttribute("tabindex")) el.tabIndex = 0;
+    el.addEventListener("click", () => {
+      if (state.skipClick) return;
+      activateItem(el);
+    });
+    el.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      activateItem(el);
+    });
+  });
 }
 
 function initValueTreeParticles() {
