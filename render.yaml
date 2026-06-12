@@ -1,0 +1,21 @@
+# Render.com — Disk faqat to'lovli rejimda ishlaydi (Starter+)
+# Bepul rejim: ma'lumotlar har deployda o'chishi mumkin — Disk qo'shing
+services:
+  - type: web
+    name: qadriyatlar
+    runtime: node
+    plan: starter
+    buildCommand: npm install --prefix server
+    startCommand: node server/index.js
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: qadriyatlar-data
+      mountPath: /var/data
+      sizeGB: 1

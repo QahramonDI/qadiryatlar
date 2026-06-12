@@ -63,6 +63,7 @@ import {
   deleteMediaByUrl,
   MEDIA_ROOT,
   LEGACY_UPLOADS_ROOT,
+  ensurePersistentDataDir,
 } from "./media-store.js";
 
 ensureBootstrapAdmin();
@@ -87,6 +88,7 @@ function loadEnvFile() {
   });
 }
 loadEnvFile();
+ensurePersistentDataDir();
 const IJOD_UPLOAD_DIR = path.join(__dirname, "uploads", "ijod");
 const WORKS_UPLOAD_DIR = path.join(__dirname, "uploads", "works");
 fs.mkdirSync(IJOD_UPLOAD_DIR, { recursive: true });

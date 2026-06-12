@@ -11,8 +11,34 @@ export const DATA_DIR = process.env.DATA_DIR
 
 export const MEDIA_ROOT = path.join(DATA_DIR, "media");
 export const LEGACY_UPLOADS_ROOT = path.join(__dirname, "uploads");
+const BUNDLE_DATA_DIR = path.join(__dirname, "data");
 
 fs.mkdirSync(MEDIA_ROOT, { recursive: true });
+
+/** Render doimiy disk: birinchi marta repodagi data/ ni diskka nusxalaydi */
+export function ensurePersistentDataDir() {
+  if (!process.env.DATA_DIR) return;
+  const target = path.resolve(process.env.DATA_DIR);
+  if (target === path.resolve(BUNDLE_DATA_DIR)) return;
+  fs.mkdirSync(target, { recursive: true });
+  const marker = path.join(target, ".seeded");
+  if (fs.existsSync(marker)) return;
+
+  const copyInto = (src, dest) => {
+    if (!fs.existsSync(src)) return;
+    fs.mkdirSync(dest, { recursive: true });
+    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+      const from = path.join(src, entry.name);
+      const to = path.join(dest, entry.name);
+      if (entry.isDirectory()) copyInto(from, to);
+      else if (!fs.existsSync(to)) fs.copyFileSync(from, to);
+    }
+  };
+
+  copyInto(BUNDLE_DATA_DIR, target);
+  fs.writeFileSync(marker, new Date().toISOString());
+  console.log(`[data] Render diskka boshlang'ich ma'lumotlar nusxalandi: ${target}`);
+}
 
 export function parseImageBase64(imageBase64, maxBytes = 6 * 1024 * 1024) {
   const match = String(imageBase64 || "").match(/^data:image\/(jpeg|jpg|png|webp|svg\+xml);base64,(.+)$/i);
