@@ -1,0 +1,14 @@
+{
+  "guess": {
+    "pickCount": 8,
+    "items": []
+  },
+  "author": {
+    "pickCount": 8,
+    "items": []
+  },
+  "truefalse": {
+    "pickCount": 10,
+    "items": []
+  }
+}

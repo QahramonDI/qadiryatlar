@@ -1,0 +1,60 @@
+{
+  "viewBox": [
+    820,
+    520
+  ],
+  "centroids": {
+    "qoraqalpogiston": {
+      "mapX": 18.9,
+      "mapY": 36.6
+    },
+    "xorazm": {
+      "mapX": 30.7,
+      "mapY": 56.1
+    },
+    "navoiy": {
+      "mapX": 48.8,
+      "mapY": 50.1
+    },
+    "buxoro": {
+      "mapX": 45.3,
+      "mapY": 66.8
+    },
+    "qashqadaryo": {
+      "mapX": 58.3,
+      "mapY": 79.1
+    },
+    "surxondaryo": {
+      "mapX": 65.7,
+      "mapY": 86.7
+    },
+    "samarqand": {
+      "mapX": 60,
+      "mapY": 70
+    },
+    "jizzax": {
+      "mapX": 66.9,
+      "mapY": 65.1
+    },
+    "sirdaryo": {
+      "mapX": 72.2,
+      "mapY": 63.9
+    },
+    "toshkent": {
+      "mapX": 78.2,
+      "mapY": 56.9
+    },
+    "namangan": {
+      "mapX": 86.3,
+      "mapY": 58.8
+    },
+    "andijon": {
+      "mapX": 92,
+      "mapY": 61.5
+    },
+    "fargona": {
+      "mapX": 86.4,
+      "mapY": 64.3
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "items": [
+    {
+      "id": "1781170674145-jc2f4n",
+      "created_at": "2026-06-11T09:37:54.145Z",
+      "ratings": {},
+      "user_id": 5,
+      "username": "asatbek",
+      "author_name": "Asatbek",
+      "grade": 3,
+      "title": "Mehnatsevarlik",
+      "description": "Biz tabiatni asraymiz va ardoqlaymiz",
+      "value_id": "mehnatsevarlik",
+      "image_url": "/uploads/ijod/5_1781170674144.jpg"
+    },
+    {
+      "id": "1781169478586-i2weyg",
+      "created_at": "2026-06-11T09:17:58.586Z",
+      "ratings": {},
+      "user_id": 2,
+      "username": "yusuf",
+      "author_name": "Yusuf",
+      "grade": 4,
+      "title": "Mening ijodim",
+      "description": "Men oʻz qishlogʻimni juda yaxshi koʻraman",
+      "value_id": "vatanparvarlik",
+      "image_url": "/uploads/ijod/2_1781169478586.jpg"
+    },
+    {
+      "id": "1781128685701-n254h4",
+      "created_at": "2026-06-10T21:58:05.701Z",
+      "ratings": {},
+      "user_id": 2,
+      "username": "yusuf",
+      "author_name": "Yusuf",
+      "grade": 4,
+      "title": "gul",
+      "description": "",
+      "value_id": "mehnatsevarlik",
+      "image_url": "/uploads/ijod/2_1781128685700.jpg"
+    },
+    {
+      "id": "1781122726518-l3b5uu",
+      "created_at": "2026-06-10T20:18:46.518Z",
+      "ratings": {},
+      "user_id": 3,
+      "username": "qahramon",
+      "author_name": "Qahramon",
+      "grade": 3,
+      "title": "Quyosh",
+      "description": "",
+      "value_id": "mehribonlik",
+      "image_url": "/uploads/ijod/3_1781122726517.jpg"
+    },
+    {
+      "id": "1781122689363-4hyf84",
+      "created_at": "2026-06-10T20:18:09.363Z",
+      "ratings": {
+        "2": 5
+      },
+      "user_id": 3,
+      "username": "qahramon",
+      "author_name": "Qahramon",
+      "grade": 3,
+      "title": "Uy",
+      "description": "",
+      "value_id": "vatanparvarlik",
+      "image_url": "/uploads/ijod/3_1781122689363.jpg"
+    },
+    {
+      "id": "1781122640007-a7j1qx",
+      "created_at": "2026-06-10T20:17:20.007Z",
+      "ratings": {
+        "1": 4
+      },
+      "user_id": 3,
+      "username": "qahramon",
+      "author_name": "Qahramon",
+      "grade": 3,
+      "title": "Gul",
+      "description": "",
+      "value_id": "mehribonlik",
+      "image_url": "/uploads/ijod/3_1781122640007.jpg"
+    },
+    {
+      "id": "1781121305290-816qha",
+      "created_at": "2026-06-10T19:55:05.290Z",
+      "user_id": 1,
+      "username": "neo",
+      "author_name": "Neo",
+      "grade": 4,
+      "title": "Mushukcham",
+      "description": "",
+      "value_id": "mehribonlik",
+      "image_url": "/uploads/ijod/1_1781121305289.jpg",
+      "ratings": {
+        "2": 5,
+        "3": 5
+      }
+    },
+    {
+      "id": "1781120678216-e1tbxl",
+      "created_at": "2026-06-10T19:44:38.216Z",
+      "user_id": 3,
+      "username": "qahramon",
+      "author_name": "Qahramon",
+      "grade": 3,
+      "title": "Bolakay",
+      "description": "",
+      "value_id": "mehribonlik",
+      "image_url": "/uploads/ijod/3_1781120678216.jpg",
+      "ratings": {
+        "1": 5,
+        "2": 5
+      }
+    },
+    {
+      "id": "1781120583964-k5dfov",
+      "created_at": "2026-06-10T19:43:03.964Z",
+      "user_id": 2,
+      "username": "yusuf",
+      "author_name": "Yusuf",
+      "grade": 4,
+      "title": "Ona",
+      "description": "",
+      "value_id": "ota-onaga-hurmat",
+      "image_url": "/uploads/ijod/2_1781120583964.jpg",
+      "ratings": {
+        "1": 5,
+        "3": 3
+      }
+    }
+  ]
+}

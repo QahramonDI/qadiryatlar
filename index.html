@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Qadriyatlar Kaledaskopi — 3-4-sinf o'quvchilari uchun milliy qadriyatlarni badiiy asarlar orqali o'rgatadigan interaktiv, gamifikatsiyalashgan ta'lim platformasi." />
+  <title>Qadriyatlar Kaledaskopi</title>
+
+  <!-- Google Fonts: Quicksand + Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <script>
+    (function () {
+      try {
+        var cur = localStorage.getItem("qk_current_user_v1");
+        var token = localStorage.getItem("qk_token");
+        var users = JSON.parse(localStorage.getItem("qk_users_v1") || "{}");
+        if ((cur && users[cur]) || (cur && token)) {
+          document.documentElement.classList.add("has-session", "app-booting");
+        }
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
+  <!-- ============================ AUTH GATE (login / ro'yxatdan o'tish) ============================ -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-bg"></div>
+    <div class="auth-card">
+      <div class="auth-brand">
+        <img class="auth-logo" src="assets/logo.png" alt="Qadriyatlar Kaledaskopi logotipi" />
+      </div>
+      <p class="auth-tag">Bilim sayohatini boshlash uchun kiring</p>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" data-atab="login">Kirish</button>
+        <button class="auth-tab" data-atab="register">Ro'yxatdan o'tish</button>
+      </div>
+
+      <!-- Kirish formasi -->
+      <form class="auth-form active" id="loginForm" data-form="login" autocomplete="off">
+        <label for="loginUser">Foydalanuvchi nomi</label>
+        <div class="auth-input"><i class="fa-solid fa-user"></i><input id="loginUser" type="text" placeholder="masalan: asadbek" required /></div>
+        <label for="loginPass">Parol</label>
+        <div class="auth-input"><i class="fa-solid fa-lock"></i><input id="loginPass" type="password" placeholder="Parolingiz" required /></div>
+        <p class="auth-error" id="loginError" hidden></p>
+        <button class="auth-submit" type="submit"><i class="fa-solid fa-right-to-bracket"></i> Kirish</button>
+      </form>
+
+      <!-- Ro'yxatdan o'tish formasi -->
+      <form class="auth-form" id="registerForm" data-form="register" autocomplete="off" hidden>
+        <div class="reg-photo-row">
+          <span class="avatar lg photo-preview" id="regPhotoPreview">🧒</span>
+          <label class="ghost-btn photo-upload" style="width:auto"><i class="fa-solid fa-camera"></i> Rasm yuklash
+            <input type="file" id="regPhotoInput" accept="image/*" hidden />
+          </label>
+        </div>
+        <label>Ism</label>
+        <div class="auth-input"><i class="fa-solid fa-id-card"></i><input id="regName" type="text" placeholder="Ismingiz" required /></div>
+        <label>Foydalanuvchi nomi</label>
+        <div class="auth-input"><i class="fa-solid fa-user"></i><input id="regUser" type="text" placeholder="Login (lotin harfda)" required /></div>
+        <div class="auth-row">
+          <div style="flex:1">
+            <label>Sinf</label>
+            <select id="regGrade" class="auth-select"><option value="3">3-sinf</option><option value="4">4-sinf</option></select>
+          </div>
+          <div>
+            <label>Yoki emoji</label>
+            <div class="auth-avatars" id="regAvatars"></div>
+          </div>
+        </div>
+        <label>Parol</label>
+        <div class="auth-input"><i class="fa-solid fa-lock"></i><input id="regPass" type="password" placeholder="Kamida 4 belgi" required /></div>
+        <p class="auth-error" id="regError" hidden></p>
+        <button class="auth-submit" type="submit"><i class="fa-solid fa-user-plus"></i> Ro'yxatdan o'tish</button>
+      </form>
+
+      <p class="auth-note"><i class="fa-solid fa-circle-info"></i> Ma'lumotlar shu qurilmada saqlanadi.</p>
+    </div>
+  </div>
+
+  <!-- ============================ ADMIN KIRISH ============================ -->
+  <div class="auth-gate teacher-gate admin-gate" id="teacherAuthGate" hidden>
+    <div class="auth-bg"></div>
+    <div class="auth-card teacher-auth-card admin-auth-card">
+      <button class="teacher-gate-close" id="teacherGateClose" type="button" aria-label="Yopish"><i class="fa-solid fa-xmark"></i></button>
+      <div class="auth-brand">
+        <img class="auth-logo" src="assets/logo.png" alt="Qadriyatlar Kaledaskopi logotipi" />
+      </div>
+      <p class="auth-tag"><i class="fa-solid fa-shield-halved"></i> Admin panel</p>
+      <p class="admin-gate-sub muted">Saytni boshqarish uchun kirish</p>
+
+      <form class="auth-form active" id="teacherLoginForm" data-tform="login" autocomplete="off">
+        <label for="teacherLoginUser">Login</label>
+        <div class="auth-input"><i class="fa-solid fa-user"></i><input id="teacherLoginUser" type="text" placeholder="Madina" required autocomplete="username" /></div>
+        <label for="teacherLoginPass">Parol</label>
+        <div class="auth-input"><i class="fa-solid fa-lock"></i><input id="teacherLoginPass" type="password" placeholder="Parol" required autocomplete="current-password" /></div>
+        <p class="auth-error" id="teacherLoginError" hidden></p>
+        <button class="auth-submit" type="submit"><i class="fa-solid fa-right-to-bracket"></i> Admin panelga kirish</button>
+      </form>
+
+      <p class="auth-note"><i class="fa-solid fa-circle-info"></i> Faqat ruxsat berilgan foydalanuvchilar kirishi mumkin.</p>
+    </div>
+  </div>
+
+  <!-- ============================ HEADER / NAV ============================ -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a href="#bosh" class="brand" data-nav="bosh" aria-label="Bosh sahifa">
+        <img class="brand-logo" src="assets/logo-single.png" alt="Qadriyatlar Kaledaskopi logotipi" />
+      </a>
+
+      <nav class="mainnav" id="mainnav">
+        <a class="navlink" data-nav="bosh" href="#bosh"><i class="fa-solid fa-house"></i> Bosh sahifa</a>
+        <a class="navlink" data-nav="kutubxona" href="#kutubxona"><i class="fa-solid fa-book-open"></i> Asarlar</a>
+        <a class="navlink" data-nav="oyinlar" href="#oyinlar"><i class="fa-solid fa-gamepad"></i> O'yinlar</a>
+        <a class="navlink" data-nav="testlar" href="#testlar"><i class="fa-solid fa-clipboard-list"></i> Testlar</a>
+        <a class="navlink" data-nav="ijod" href="#ijod"><i class="fa-solid fa-palette"></i> Ijod</a>
+        <a class="navlink" data-nav="yutuqlar" href="#yutuqlar"><i class="fa-solid fa-trophy"></i> Yutuqlar</a>
+        <a class="navlink" data-nav="ota-ona" href="#ota-ona"><i class="fa-solid fa-people-roof"></i> Ota-onalar</a>
+      </nav>
+
+      <button class="profile-chip" id="profileChip" aria-label="Profil">
+        <span class="avatar" id="chipAvatar">🧒</span>
+        <span class="profile-meta">
+          <b id="chipName">Asadbek</b>
+          <small id="chipGrade">3-sinf o'quvchisi</small>
+        </span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </button>
+
+      <button class="hamburger" id="hamburger" type="button" aria-label="Menyu" aria-expanded="false" aria-controls="mainnav"><i class="fa-solid fa-bars"></i></button>
+    </div>
+  </header>
+
+  <!-- ============================ MAIN ============================ -->
+  <main id="app">
+
+    <!-- ========== 1. BOSH SAHIFA ========== -->
+    <section class="page" id="page-bosh">
+      <div class="hero">
+        <div class="hero-bg">
+          <img class="hero-bg-img" src="assets/qadriyatlar-main-hero-bg.png" alt="" aria-hidden="true" />
+        </div>
+        <div class="hero-pattern" data-parallax data-speed="-0.12"></div>
+        <div class="hero-content">
+          <img class="hero-logo" src="assets/logo.png" alt="Qadriyatlar Kaledaskopi" />
+          <p class="hero-sub">Bolalar adabiyoti orqali milliy qadriyatlar olamiga sayohat</p>
+          <div class="hero-cta">
+            <button type="button" class="cta cta-blue" data-nav="kutubxona"><i class="fa-solid fa-book-open"></i> Asarlarni o'rganish <i class="fa-solid fa-angle-right"></i></button>
+            <button type="button" class="cta cta-green" data-nav="oyinlar"><i class="fa-solid fa-gamepad"></i> O'yinlarni boshlash <i class="fa-solid fa-angle-right"></i></button>
+            <button type="button" class="cta cta-orange" data-nav="testlar"><i class="fa-solid fa-clipboard-check"></i> Test ishlash <i class="fa-solid fa-angle-right"></i></button>
+          </div>
+        </div>
+        <div class="hero-wave"></div>
+      </div>
+
+      <div class="home-parallax-panel">
+      <div class="dash-grid">
+        <!-- Profil kartasi -->
+        <aside class="card profile-card">
+          <div class="pc-head">
+            <span class="avatar lg" id="pcAvatar">🧒</span>
+            <div>
+              <h3 id="pcGreet">Salom, Asadbek! 👋</h3>
+              <p id="pcGrade" class="muted">3-sinf o'quvchisi</p>
+            </div>
+          </div>
+          <div class="level-box">
+            <div class="level-row">
+              <small class="muted">Daraja</small>
+              <span class="level-name" id="pcLevelName">Explorer 🌱</span>
+            </div>
+            <div class="xp-bar"><div class="xp-fill" id="pcXpFill"></div></div>
+            <small class="muted" id="pcXpText">0 / 1000 XP</small>
+          </div>
+          <div class="stat-row">
+            <div class="stat"><b id="pcStars">0</b><span>⭐ Yulduzlar</span></div>
+            <div class="stat"><b id="pcStreak">0</b><span>🔥 Kunlik seriya</span></div>
+            <div class="stat"><b id="pcBadges">0</b><span>🎁 Mukofotlar</span></div>
+          </div>
+          <button class="ghost-btn" data-nav="yutuqlar"><i class="fa-solid fa-user"></i> Profilim <i class="fa-solid fa-angle-right"></i></button>
+        </aside>
+
+        <!-- Markaz: mashhur asarlar va o'yinlar -->
+        <div class="dash-center">
+        <!-- Mashhur asarlar -->
+        <section class="card popular-card">
+          <div class="card-head">
+            <h3>Mashhur asarlar</h3>
+            <button class="link-btn" data-nav="kutubxona">Barchasini ko'rish <i class="fa-solid fa-angle-right"></i></button>
+          </div>
+          <div class="popular-shell">
+            <button class="popular-nav popular-prev" id="popularPrev" type="button" aria-label="Oldingi asarlar"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="popular-scroll" id="popularWorks"></div>
+            <button class="popular-nav popular-next" id="popularNext" type="button" aria-label="Keyingi asarlar"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </section>
+
+        <!-- Mashhur o'yinlar -->
+        <section class="card popular-card">
+          <div class="card-head">
+            <h3><i class="fa-solid fa-gamepad"></i> O'yinlar</h3>
+            <button class="link-btn" data-nav="oyinlar">Barchasini ko'rish <i class="fa-solid fa-angle-right"></i></button>
+          </div>
+          <div class="popular-shell">
+            <button class="popular-nav popular-prev" id="popularGamesPrev" type="button" aria-label="Oldingi o'yinlar"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="popular-scroll" id="popularGames"></div>
+            <button class="popular-nav popular-next" id="popularGamesNext" type="button" aria-label="Keyingi o'yinlar"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </section>
+        </div>
+
+        <!-- Kunlik maqsad -->
+        <aside class="card goal-card">
+          <div class="card-head"><h3>Kunlik maqsad</h3><i class="fa-solid fa-bullseye goal-ico"></i></div>
+          <p class="muted">Bugungi maqsadingni bajarib, yulduzlar yig'!</p>
+          <div class="goal-body">
+            <div class="goal-ring" id="goalRing"><span id="goalCount">0 / 5</span></div>
+            <div>
+              <b id="goalLabel">Topshiriq bajarildi</b>
+              <div class="mini-bar"><div class="mini-fill" id="goalFill"></div></div>
+            </div>
+          </div>
+          <button type="button" class="solid-btn" id="goalBtn"><i class="fa-solid fa-arrow-right"></i> Davom etish</button>
+          <div class="bot-hint"><span class="bot-face">🦉</span><p id="goalHint">Zo'r ish! Davom eting, bilim sizni yuksaltiradi!</p></div>
+        </aside>
+      </div>
+      </div>
+
+      <!-- O'zbekiston qadriyatlar xaritasi -->
+      <section class="uz-map-section card" id="uzMapSection" aria-label="O'zbekiston qadriyatlar xaritasi">
+        <div class="card-head uz-map-head">
+          <div>
+            <h3><i class="fa-solid fa-map-location-dot"></i> Qadriyatlar xaritasi</h3>
+            <p class="muted">Viloyatni tanlang — o'z qadriyati, ertagi va an'anasini o'rganing!</p>
+          </div>
+          <span class="uz-map-stamp" aria-hidden="true">✈️ Sayohat</span>
+        </div>
+        <div class="uz-map-layout">
+          <div class="uz-map-wrap" id="uzMapWrap">
+            <div class="uz-map-stage-host" id="uzMapHost"></div>
+            <p class="uz-map-hint muted"><i class="fa-solid fa-hand-pointer"></i> Xaritadagi belgini bosing — infografika ochiladi</p>
+          </div>
+          <aside class="uz-map-panel" id="uzMapPanel" aria-live="polite">
+            <div class="uz-map-panel-empty" id="uzMapPanelEmpty">
+              <span class="uz-map-panel-icon">🗺️</span>
+              <h4>Sayohatni boshlang!</h4>
+              <p class="muted">Xaritadagi viloyat belgisini bosing. Har bir joy o'z qadriyati va infografikasiga ega.</p>
+              <p class="uz-map-progress muted" id="uzMapProgress"></p>
+            </div>
+            <div class="uz-map-panel-body" id="uzMapPanelBody" hidden></div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Tezkor havolalar -->
+      <div class="quick-links">
+        <button type="button" class="quick q-blue" data-nav="audio"><i class="fa-solid fa-headphones"></i><div><b>Audio hikoyalar</b><small>Eshitib o'rganing</small></div></button>
+        <button type="button" class="quick q-teal" data-nav="ijod"><i class="fa-solid fa-palette"></i><div><b>Ijod galereyasi</b><small>Rasmlaringizni ulashing</small></div></button>
+        <button type="button" class="quick q-green" data-nav="oyinlar"><i class="fa-solid fa-puzzle-piece"></i><div><b>Interaktiv o'yinlar</b><small>O'ynab o'rganing</small></div></button>
+        <button type="button" class="quick q-orange" data-nav="testlar"><i class="fa-solid fa-clipboard-list"></i><div><b>Qiziqarli testlar</b><small>Bilimingizni sinang</small></div></button>
+        <button type="button" class="quick q-purple" data-nav="yutuqlar"><i class="fa-solid fa-gift"></i><div><b>Mukofotlar do'koni</b><small>Yutuqlaringiz uchun</small></div></button>
+      </div>
+
+      <!-- Qadriyatlar daraxti -->
+      <div class="value-tree-intro">
+        <h3><i class="fa-solid fa-tree"></i> Qadriyatlar daraxti</h3>
+        <p class="muted">Mevani bosing — har bir meva yangi qadriyat va asarlar olamini ochadi!</p>
+      </div>
+      <section class="value-tree-section">
+        <div class="value-tree">
+          <div class="value-tree-stage">
+            <img class="value-tree-img" src="assets/qadriyatlar-daraxti-bg-fairytale.png" alt="Qadriyatlar daraxti — O'zbekiston manzarasi" />
+            <div class="value-tree-particles" id="valueTreeParticles" aria-hidden="true"></div>
+            <div class="pomegranates" id="pomegranates"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ========== 2. INTERAKTIV KUTUBXONA ========== -->
+    <section class="page" id="page-kutubxona" hidden>
+      <div class="page-head">
+        <h2><i class="fa-solid fa-book-open"></i> Interaktiv kutubxona</h2>
+        <p class="muted" id="librarySubtitle">3–4-sinf darsliklaridagi badiiy asarlar — o'qing, o'ynang, o'rganing.</p>
+      </div>
+      <div class="library-toolbar">
+        <div class="filters">
+          <div class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" type="search" placeholder="Asar nomi yoki kalit so'z..." /></div>
+          <select id="gradeFilter" class="filter-select"><option value="">Barcha sinflar</option><option value="3">3-sinf</option><option value="4">4-sinf</option></select>
+          <select id="valueFilter" class="filter-select"><option value="">Barcha qadriyatlar</option></select>
+          <select id="genreFilter" class="filter-select"><option value="">Barcha janrlar</option><option value="she'r">She'r</option><option value="hikoya">Hikoya</option><option value="ertak">Ertak</option><option value="masal">Masal</option><option value="matn">Matn</option></select>
+        </div>
+        <div class="ijod-sort-group library-sort-group" role="group" aria-label="Asarlarni saralash">
+          <span class="ijod-sort-label">Saralash:</span>
+          <div class="ijod-sort-toggle">
+            <button type="button" class="ijod-sort-btn active" id="librarySortNewest" data-sort="newest" aria-pressed="true" title="Eng yangi asarlar birinchi">
+              <i class="fa-solid fa-check ijod-sort-check" aria-hidden="true"></i>
+              <i class="fa-solid fa-clock"></i> Yangilar
+            </button>
+            <button type="button" class="ijod-sort-btn" id="librarySortPopular" data-sort="popular" aria-pressed="false" title="Eng yuqori baholangan asarlar birinchi">
+              <i class="fa-solid fa-check ijod-sort-check" aria-hidden="true"></i>
+              <i class="fa-solid fa-star"></i> Reyting
+            </button>
+            <button type="button" class="ijod-sort-btn" id="librarySortRandom" data-sort="random" aria-pressed="false" title="Tasodifiy tartibda">
+              <i class="fa-solid fa-check ijod-sort-check" aria-hidden="true"></i>
+              <i class="fa-solid fa-shuffle"></i> Aralash
+            </button>
+          </div>
+        </div>
+        <p class="ijod-sort-status library-sort-status" id="librarySortStatus" data-sort="newest" aria-live="polite">
+          <i class="fa-solid fa-clock" aria-hidden="true"></i>
+          <span id="librarySortStatusText">Eng yangi asarlar birinchi ko'rsatilmoqda</span>
+        </p>
+      </div>
+      <div class="works-grid" id="worksGrid"></div>
+      <p class="empty-note" id="worksEmpty" hidden>Hech narsa topilmadi. Filtrlarni o'zgartiring.</p>
+    </section>
+
+    <!-- ========== 3. O'YINLAR HUB ========== -->
+    <section class="page" id="page-oyinlar" hidden>
+      <div class="page-head">
+        <h2><i class="fa-solid fa-gamepad"></i> O'yinlar maydoni</h2>
+        <p class="muted">O'ynab o'rgan! Har bir o'yin senga XP va yulduz olib keladi.</p>
+      </div>
+      <div class="games-grid" id="gamesGrid"></div>
+      <div id="gameStage" class="game-stage" hidden></div>
+    </section>
+
+    <!-- ========== 4. TESTLAR ========== -->
+    <section class="page" id="page-testlar" hidden>
+      <div class="page-head">
+        <h2><i class="fa-solid fa-clipboard-check"></i> Testlar markazi</h2>
+        <p class="muted">Asarni tanlang, savollarga javob bering va sertifikat oling!</p>
+      </div>
+      <div id="testPicker" class="test-picker"></div>
+      <div id="testStage" class="test-stage" hidden></div>
+    </section>
+
+    <!-- ========== 5. YUTUQLAR / REYTING ========== -->
+    <section class="page" id="page-yutuqlar" hidden>
+      <div class="page-head">
+        <h2><i class="fa-solid fa-trophy"></i> Yutuqlar va reyting</h2>
+        <p class="muted">Yulduzlaringizni sanang, badge'lar yig'ing va reytingda yuqoriga ko'tariling!</p>
+      </div>
+      <div class="ach-grid">
+        <section class="card">
+          <div class="card-head"><h3><i class="fa-solid fa-medal"></i> Mening yutuqlarim</h3></div>
+          <div class="badge-grid" id="badgeGrid"></div>
+        </section>
+        <aside class="card">
+          <div class="card-head"><h3><i class="fa-solid fa-ranking-star"></i> Reyting</h3></div>
+          <ol class="leaderboard" id="leaderboard"></ol>
+        </aside>
+      </div>
+      <section class="card cert-card">
+        <div class="card-head"><h3><i class="fa-solid fa-award"></i> Sertifikatlar</h3></div>
+        <div id="certList" class="cert-list"></div>
+      </section>
+    </section>
+
+    <!-- ========== ADMIN PANEL ========== -->
+    <section class="page admin-page" id="page-oqituvchi" hidden>
+      <div class="admin-dash-head">
+        <div class="admin-dash-title">
+          <p class="admin-kicker"><i class="fa-solid fa-shield-halved"></i> Admin panel</p>
+          <h2 id="adminWelcomeTitle">Boshqaruv markazi</h2>
+          <p class="muted" id="teacherWelcome">Sayt statistikasi, o'quvchilar va kontentni boshqaring.</p>
+        </div>
+        <button class="ghost-btn teacher-logout-btn" id="teacherLogoutBtn" type="button"><i class="fa-solid fa-right-from-bracket"></i> Chiqish</button>
+      </div>
+
+      <div class="admin-stats-row" id="adminStatsRow"></div>
+
+      <nav class="admin-tabs" id="adminTabs" role="tablist" aria-label="Admin bo'limlari">
+        <button type="button" class="admin-tab active" data-admin-tab="overview" role="tab"><i class="fa-solid fa-chart-pie"></i> Umumiy</button>
+        <button type="button" class="admin-tab" data-admin-tab="students" role="tab"><i class="fa-solid fa-users"></i> O'quvchilar</button>
+        <button type="button" class="admin-tab" data-admin-tab="ijod" role="tab"><i class="fa-solid fa-images"></i> Rasmlar</button>
+        <button type="button" class="admin-tab" data-admin-tab="works" role="tab"><i class="fa-solid fa-book"></i> Asarlar</button>
+        <button type="button" class="admin-tab" data-admin-tab="values" role="tab"><i class="fa-solid fa-seedling"></i> Qadriyatlar</button>
+        <button type="button" class="admin-tab" data-admin-tab="crossword" role="tab"><i class="fa-solid fa-table-cells"></i> Krossvordlar</button>
+        <button type="button" class="admin-tab" data-admin-tab="match" role="tab"><i class="fa-solid fa-link"></i> Juftlash</button>
+        <button type="button" class="admin-tab" data-admin-tab="quiz" role="tab"><i class="fa-solid fa-gamepad"></i> Quiz o'yinlar</button>
+        <button type="button" class="admin-tab" data-admin-tab="map" role="tab"><i class="fa-solid fa-map-location-dot"></i> Xarita</button>
+        <button type="button" class="admin-tab admin-tab-admin-only" data-admin-tab="staff" role="tab" hidden><i class="fa-solid fa-user-shield"></i> Xodimlar</button>
+      </nav>
+
+      <div class="admin-panel active" id="adminPanelOverview" data-admin-panel="overview">
+        <div class="admin-two-col">
+          <section class="card"><div class="card-head"><h3>Qadriyatlar taqsimoti</h3></div><div class="chart-box"><canvas id="valuesChart"></canvas></div></section>
+          <section class="card"><div class="card-head"><h3>Sinflar bo'yicha</h3></div><div class="chart-box"><canvas id="gradeChart"></canvas></div></section>
+        </div>
+        <section class="card">
+          <div class="card-head"><h3><i class="fa-solid fa-ranking-star"></i> Top o'quvchilar</h3></div>
+          <div class="admin-leader-preview" id="adminLeaderPreview"></div>
+        </section>
+      </div>
+
+      <div class="admin-panel" id="adminPanelStudents" data-admin-panel="students" hidden>
+        <section class="card">
+          <div class="card-head">
+            <h3><i class="fa-solid fa-user-plus"></i> Yangi o'quvchi</h3>
+          </div>
+          <form class="admin-inline-form" id="adminCreateStudentForm">
+            <input type="text" id="adminStuName" placeholder="Ism" required />
+            <input type="text" id="adminStuUser" placeholder="Login (lotin)" required pattern="[a-z0-9_.]{3,20}" />
+            <input type="password" id="adminStuPass" placeholder="Parol" required minlength="4" />
+            <select id="adminStuGrade"><option value="3">3-sinf</option><option value="4">4-sinf</option></select>
+            <button type="submit" class="solid-btn admin-form-btn"><i class="fa-solid fa-plus"></i> Qo'shish</button>
+          </form>
+        </section>
+        <section class="card">
+          <div class="card-head card-head--split">
+            <h3>Barcha o'quvchilar</h3>
+            <button type="button" class="ghost-btn admin-pass-toggle" id="adminTogglePasswords" aria-pressed="false">
+              <i class="fa-solid fa-eye"></i> Parollarni ko'rsatish
+            </button>
+          </div>
+          <div class="table-wrap"><table class="analysis-table admin-students-table" id="adminStudentsTable"></table></div>
+          <p class="muted" id="teacherStudentsEmpty" hidden>O'quvchi topilmadi.</p>
+        </section>
+
+        <div class="admin-work-modal admin-stu-modal" id="adminStudentModal" hidden>
+          <div class="admin-work-modal-backdrop" id="adminStudentModalBackdrop"></div>
+          <div class="admin-work-modal-panel" role="dialog" aria-labelledby="adminStuEditHeading">
+            <div class="admin-work-modal-head">
+              <h3 id="adminStuEditHeading"><i class="fa-solid fa-user-pen"></i> O'quvchini tahrirlash</h3>
+              <button type="button" class="ghost-btn admin-mini-btn" id="adminStuEditClose" aria-label="Yopish"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="admin-work-modal-body">
+              <div class="admin-stu-avatar-block">
+                <span class="avatar lg photo-preview" id="adminStuEditAvatar"></span>
+                <div class="admin-stu-avatar-meta">
+                  <p class="muted admin-stu-avatar-hint">Profil rasmi (o'quvchi yuklagan)</p>
+                  <button type="button" class="ghost-btn admin-mini-btn admin-danger" id="adminStuRemoveAvatar">
+                    <i class="fa-solid fa-trash"></i> Rasmni o'chirish
+                  </button>
+                </div>
+              </div>
+              <label class="admin-field-label" for="adminStuEditName">Ism</label>
+              <input type="text" id="adminStuEditName" placeholder="O'quvchi ismi" />
+              <label class="admin-field-label" for="adminStuEditUser">Login</label>
+              <input type="text" id="adminStuEditUser" placeholder="Login (lotin)" pattern="[a-z0-9_.]{3,20}" />
+              <label class="admin-field-label" for="adminStuEditPass">Parol</label>
+              <input type="text" id="adminStuEditPass" placeholder="Yangi parol (kamida 4 belgi)" minlength="4" />
+              <label class="admin-field-label" for="adminStuEditGrade">Sinf</label>
+              <select id="adminStuEditGrade"><option value="3">3-sinf</option><option value="4">4-sinf</option></select>
+            </div>
+            <div class="admin-work-modal-foot">
+              <button type="button" class="ghost-btn" id="adminStuEditCancel">Bekor</button>
+              <button type="button" class="solid-btn" id="adminStuEditSave"><i class="fa-solid fa-floppy-disk"></i> Saqlash</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-work-modal admin-stu-modal" id="adminStudentWarnModal" hidden>
+          <div class="admin-work-modal-backdrop" id="adminStudentWarnBackdrop"></div>
+          <div class="admin-work-modal-panel" role="dialog" aria-labelledby="adminStuWarnHeading">
+            <div class="admin-work-modal-head">
+              <h3 id="adminStuWarnHeading"><i class="fa-solid fa-triangle-exclamation"></i> Ogohlantirish yuborish</h3>
+              <button type="button" class="ghost-btn admin-mini-btn" id="adminStuWarnClose" aria-label="Yopish"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="admin-work-modal-body">
+              <p class="muted" id="adminStuWarnTarget"></p>
+              <label class="admin-field-label" for="adminStuWarnMessage">Sabab / xabar</label>
+              <textarea id="adminStuWarnMessage" rows="4" placeholder="Masalan: Profil rasmingiz sayt qoidalariga mos emas."></textarea>
+              <div class="admin-warn-presets">
+                <button type="button" class="ghost-btn admin-mini-btn admin-warn-preset" data-warn-preset="Profil rasmingiz sayt qoidalariga mos emas. Iltimos, o'zingizning yoki qadriyatli rasm yuklang.">Qoidaga mos emas</button>
+                <button type="button" class="ghost-btn admin-mini-btn admin-warn-preset" data-warn-preset="Profil rasmingiz bema'ni yoki nomaqbul. Rasm o'chirildi — emoji avatar ishlating.">Nomaqbul rasm</button>
+                <button type="button" class="ghost-btn admin-mini-btn admin-warn-preset" data-warn-preset="Iltimos, profil rasmi sifatida faqat o'zingizning yoki darslik qahramonlari rasmini qo'ying.">Eslatma</button>
+              </div>
+              <label class="admin-warn-toggle" for="adminStuWarnRemoveAvatar">
+                <input type="checkbox" id="adminStuWarnRemoveAvatar" checked />
+                <span class="admin-warn-toggle-text"><i class="fa-solid fa-image"></i> Profil rasmini o'chirish va qayta yuklashni vaqtincha to'xtatish</span>
+              </label>
+            </div>
+            <div class="admin-work-modal-foot">
+              <button type="button" class="ghost-btn" id="adminStuWarnCancel">Bekor</button>
+              <button type="button" class="solid-btn admin-warn-send-btn" id="adminStuWarnSend"><i class="fa-solid fa-paper-plane"></i> Yuborish</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-panel" id="adminPanelIjod" data-admin-panel="ijod" hidden>
+        <section class="card">
+          <div class="card-head"><h3><i class="fa-solid fa-palette"></i> Ijod galereyasi moderatsiyasi</h3></div>
+          <div class="admin-ijod-grid" id="adminIjodGrid"></div>
+          <p class="muted" id="adminIjodEmpty" hidden>Hozircha rasm yo'q.</p>
+        </section>
+      </div>
+
+      <div class="admin-panel" id="adminPanelWorks" data-admin-panel="works" hidden>
+        <section class="card">
+          <div class="card-head"><h3><i class="fa-solid fa-plus"></i> Yangi asar qo'shish</h3></div>
+          <form class="admin-work-form" id="adminCreateWorkForm">
+            <div class="admin-form-grid">
+              <input type="text" id="adminWorkTitle" placeholder="Asar nomi *" required />
+              <input type="text" id="adminWorkAuthor" placeholder="Muallif *" required />
+              <select id="adminWorkGrade"><option value="3">3-sinf</option><option value="4">4-sinf</option></select>
+              <select id="adminWorkGenre"><option value="hikoya">Hikoya</option><option value="she'r">She'r</option><option value="ertak">Ertak</option><option value="masal">Masal</option><option value="matn">Matn</option></select>
+              <select id="adminWorkValue"></select>
+            </div>
+            <label class="admin-field-label" for="adminWorkSummary">Qisqacha mazmun</label>
+            <p class="admin-field-hint">Asar haqida 2–3 jumlalik qisqa tavsif</p>
+            <textarea id="adminWorkSummary" rows="2" placeholder="Masalan: Ruben marvarid topadi va saxiylik haqida saboq oladi…"></textarea>
+            <label class="admin-field-label" for="adminWorkMoral">Saboq / hikmatli so'z</label>
+            <p class="admin-field-hint">Asardan olinadigan asosiy saboq</p>
+            <textarea id="adminWorkMoral" rows="2" placeholder="Masalan: Haqiqiy baxt — boylikda emas, saxiylik va do'stlikda."></textarea>
+            <label class="admin-field-label" for="adminWorkFullText">Asar to'liq matni</label>
+            <p class="admin-field-hint">Darslikdagi to'liq matn (ixtiyoriy)</p>
+            <textarea id="adminWorkFullText" rows="4" placeholder="Asarning butun matnini shu yerga yozing…"></textarea>
+            <div class="admin-work-image-row">
+              <label class="admin-file-label"><i class="fa-solid fa-image"></i> Asar rasmi (puzzle va sayt uchun)
+                <input type="file" id="adminWorkImage" accept="image/png,image/jpeg,image/webp" hidden />
+              </label>
+              <img id="adminWorkImagePreview" class="admin-work-preview" alt="" hidden />
+            </div>
+            <p class="muted admin-form-hint">Asar yaratilganda avtomatik 10 ta test va puzzle uchun rasm tayyorlanadi.</p>
+            <button type="submit" class="solid-btn"><i class="fa-solid fa-book-medical"></i> Asar qo'shish</button>
+          </form>
+        </section>
+        <section class="card">
+          <div class="card-head card-head--split">
+            <h3>Darslik asarlari + qo'shimchalar</h3>
+            <div class="ijod-sort-group admin-works-sort" role="group" aria-label="Asarlarni saralash">
+              <span class="ijod-sort-label">Saralash:</span>
+              <div class="ijod-sort-toggle">
+                <button type="button" class="ijod-sort-btn active" id="adminWorksSortNewest" data-admin-works-sort="newest" aria-pressed="true" title="Eng yangi asarlar birinchi">
+                  <i class="fa-solid fa-check ijod-sort-check" aria-hidden="true"></i>
+                  <i class="fa-solid fa-clock"></i> Yangilar
+                </button>
+                <button type="button" class="ijod-sort-btn" id="adminWorksSortTitle" data-admin-works-sort="title" aria-pressed="false" title="Asar nomi bo'yicha">
+                  <i class="fa-solid fa-check ijod-sort-check" aria-hidden="true"></i>
+                  <i class="fa-solid fa-arrow-down-a-z"></i> Nom
+                </button>
+                <button type="button" class="ijod-sort-btn" id="adminWorksSortGrade" data-admin-works-sort="grade" aria-pressed="false" title="Sinf bo'yicha">
+                  <i class="fa-solid fa-check ijod-sort-check" aria-hidden="true"></i>
+                  <i class="fa-solid fa-graduation-cap"></i> Sinf
+                </button>
+                <button type="button" class="ijod-sort-btn" id="adminWorksSortValue" data-admin-works-sort="value" aria-pressed="false" title="Qadriyat bo'yicha">
+                  <i class="fa-solid fa-check ijod-sort-check" aria-hidden="true"></i>
+                  <i class="fa-solid fa-seedling"></i> Qadriyat
+                </button>
+              </div>
+            </div>
+          </div>
+          <p class="ijod-sort-status admin-works-sort-status" id="adminWorksSortStatus" data-sort="newest" aria-live="polite">
+            <i class="fa-solid fa-clock" aria-hidden="true"></i>
+            <span id="adminWorksSortStatusText">Eng yangi asarlar birinchi ko'rsatilmoqda</span>
+          </p>
+          <div class="table-wrap"><table class="analysis-table" id="adminWorksTable"></table></div>
+        </section>
+      </div>
+
+      <div class="admin-panel" id="adminPanelValues" data-admin-panel="values" hidden>
+        <section class="card">
+          <div class="card-head"><h3><i class="fa-solid fa-plus"></i> Yangi qadriyat</h3></div>
+          <form class="admin-inline-form" id="adminCreateValueForm">
+            <input type="text" id="adminValName" placeholder="Nom (masalan: Bilimga intilish)" required maxlength="60" />
+            <input type="text" id="adminValIcon" placeholder="Icon (masalan: fa-star)" value="fa-star" maxlength="40" />
+            <input type="color" id="adminValColor" value="#e6821e" title="Rang" />
+            <input type="text" id="adminValDesc" placeholder="Qisqa tavsif" maxlength="300" style="flex:2 1 200px" />
+            <button type="submit" class="solid-btn admin-form-btn"><i class="fa-solid fa-plus"></i> Qo'shish</button>
+          </form>
+        </section>
+        <section class="card">
+          <div class="card-head"><h3><i class="fa-solid fa-seedling"></i> Qadriyatlar ro'yxati</h3></div>
+          <p class="muted admin-form-hint">Asarlarga qadriyat biriktirish: qadriyatni tahrirlash oynasida bog'langan asarlarni boshqaring yoki Asarlar bo'limida asarni tahrirlang.</p>
+          <div class="table-wrap"><table class="analysis-table" id="adminValuesTable"></table></div>
+        </section>
+      </div>
+
+      <div class="admin-panel" id="adminPanelCrossword" data-admin-panel="crossword" hidden>
+        <section class="card">
+          <div class="card-head card-head--split">
+            <h3 id="adminCwHeading"><i class="fa-solid fa-table-cells"></i> Krossvord tahrirlash</h3>
+            <div class="admin-cw-mode-toggle ijod-sort-toggle" role="group" aria-label="Krossvord rejimi">
+              <button type="button" class="ijod-sort-btn active" id="adminCwModeEdit" aria-pressed="true" title="Mavjud krossvordni tahrirlash">
+                <i class="fa-solid fa-pen"></i> Tahrirlash
+              </button>
+              <button type="button" class="ijod-sort-btn" id="adminCwModeNew" aria-pressed="false" title="Yangi krossvord yaratish">
+                <i class="fa-solid fa-plus"></i> Yangi yaratish
+              </button>
+            </div>
+          </div>
+          <p class="muted admin-form-hint" id="adminCwModeHint">Mavjud krossvordli asarni tanlang va so'zlarni o'zgartiring.</p>
+          <p class="admin-cw-empty-note" id="adminCwEditEmpty" hidden>Hech qaysi asarda krossvord yo'q. «Yangi yaratish» tugmasini bosing.</p>
+          <label class="admin-field-label" for="adminCwWorkSelect">Asar</label>
+          <div class="admin-cw-work-row">
+            <select id="adminCwWorkSelect" class="filter-select admin-cw-select"></select>
+            <button type="button" class="ghost-btn admin-form-btn" id="adminCwClearRows" hidden><i class="fa-solid fa-eraser"></i> Tozalash</button>
+          </div>
+          <div id="adminCwEditorFields">
+          <label class="admin-field-label" for="adminCwLines">Savol va javoblar (har qator)</label>
+          <textarea id="adminCwLines" class="admin-cw-lines" rows="9" placeholder="Buyuk shoir va sarkarda | BOBUR&#10;Bilim manbai | KITOB&#10;Bobur sog'ingan yurt | Vatan"></textarea>
+          <p class="muted admin-form-hint">Format: <code>Savol | JAVOB</code> yoki <code>JAVOB - savol</code>. O'zbek harflari: <code>CH</code>, <code>SH</code>, <code>NG</code>, <code>G'</code>, <code>O'</code> bitta katak. Aniq ajratish: <code>CH|I|N</code></p>
+          <div class="admin-cw-actions">
+            <button type="button" class="solid-btn" id="adminCwParseLines"><i class="fa-solid fa-wand-magic-sparkles"></i> Matndan yaratish</button>
+            <button type="button" class="ghost-btn" id="adminCwAutoGen"><i class="fa-solid fa-robot"></i> Asardan avtomatik</button>
+            <button type="button" class="ghost-btn" id="adminCwAddRow"><i class="fa-solid fa-plus"></i> Qator qo'shish</button>
+          </div>
+          </div>
+        </section>
+        <section class="card">
+          <div class="card-head card-head--split">
+            <h3>So'zlar ro'yxati</h3>
+            <button type="button" class="solid-btn admin-form-btn" id="adminCwSave"><i class="fa-solid fa-floppy-disk"></i> <span id="adminCwSaveLabel">Krossvordni saqlash</span></button>
+          </div>
+          <div id="adminCwEntriesTable"></div>
+        </section>
+        <section class="card">
+          <div class="card-head"><h3>Oldindan ko'rish</h3></div>
+          <div id="adminCwPreview" class="admin-cw-preview"></div>
+        </section>
+      </div>
+
+      <div class="admin-panel" id="adminPanelMatch" data-admin-panel="match" hidden>
+        <section class="card">
+          <div class="card-head card-head--split">
+            <h3><i class="fa-solid fa-link"></i> Qadriyat juftlash o'yini</h3>
+            <button type="button" class="solid-btn admin-form-btn" id="adminMatchSave"><i class="fa-solid fa-floppy-disk"></i> Saqlash</button>
+          </div>
+          <p class="muted admin-form-hint">Har qator — bitta asar va unga mos qadriyat. O'quvchi o'yinda asarni qadriyatga chiziq bilan bog'laydi. Kamida 3 ta juft saqlang.</p>
+          <label class="admin-field-label" for="adminMatchPickCount">O'yin uchun juftlar soni</label>
+          <select id="adminMatchPickCount" class="filter-select admin-match-pick">
+            <option value="3">3 ta</option>
+            <option value="4">4 ta</option>
+            <option value="5" selected>5 ta</option>
+            <option value="6">6 ta</option>
+            <option value="7">7 ta</option>
+            <option value="8">8 ta</option>
+          </select>
+          <div class="admin-match-actions">
+            <button type="button" class="solid-btn" id="adminMatchAddRow"><i class="fa-solid fa-plus"></i> Juft qo'shish</button>
+            <button type="button" class="ghost-btn" id="adminMatchAutoFill"><i class="fa-solid fa-wand-magic-sparkles"></i> Barcha asarlardan to'ldirish</button>
+          </div>
+        </section>
+        <section class="card">
+          <div class="card-head card-head--split">
+            <h3><i class="fa-solid fa-list"></i> Juftlar ro'yxati</h3>
+            <p class="admin-match-status" id="adminMatchStatus" aria-live="polite"></p>
+          </div>
+          <p class="muted admin-form-hint">Bu ro'yxat — o'yin uchun to'liq juftlar bazasi. Har safar o'yin «O'yin uchun juftlar soni» bo'yicha tasodifiy tanlaydi.</p>
+          <div class="table-wrap"><table class="analysis-table admin-match-table" id="adminMatchTable"></table></div>
+        </section>
+      </div>
+
+      <div class="admin-panel" id="adminPanelQuiz" data-admin-panel="quiz" hidden>
+        <section class="card">
+          <div class="card-head card-head--split">
+            <h3><i class="fa-solid fa-gamepad"></i> Quiz o'yinlar boshqaruvi</h3>
+            <button type="button" class="solid-btn admin-form-btn" id="adminQuizSave"><i class="fa-solid fa-floppy-disk"></i> Barchasini saqlash</button>
+          </div>
+          <p class="muted admin-form-hint">Asar topish, Muallifni top va To'g'ri/Noto'g'ri o'yinlari. Ro'yxat bo'sh bo'lsa — darslikdan avtomatik yaratiladi. Maxsus yozuvlar xatolarni tuzatish va yangi savollar qo'shish uchun.</p>
+          <div class="admin-quiz-tabs ijod-sort-toggle" role="tablist" aria-label="Quiz o'yin turi">
+            <button type="button" class="ijod-sort-btn active" data-quiz-tab="guess" aria-pressed="true"><i class="fa-solid fa-book-open-reader"></i> Asar topish</button>
+            <button type="button" class="ijod-sort-btn" data-quiz-tab="author" aria-pressed="false"><i class="fa-solid fa-pen-nib"></i> Muallifni top</button>
+            <button type="button" class="ijod-sort-btn" data-quiz-tab="truefalse" aria-pressed="false"><i class="fa-solid fa-scale-balanced"></i> To'g'ri / Noto'g'ri</button>
+          </div>
+        </section>
+
+        <section class="card admin-quiz-panel" id="adminQuizPanelGuess" data-quiz-panel="guess">
+          <div class="card-head card-head--split">
+            <h3>Asar topish — savollar</h3>
+            <p class="admin-quiz-status" id="adminQuizGuessStatus" aria-live="polite"></p>
+          </div>
+          <label class="admin-field-label" for="adminQuizGuessPick">O'yin uchun savollar soni</label>
+          <select id="adminQuizGuessPick" class="filter-select admin-quiz-pick">
+            <option value="5">5 ta</option>
+            <option value="6">6 ta</option>
+            <option value="7">7 ta</option>
+            <option value="8" selected>8 ta</option>
+            <option value="10">10 ta</option>
+          </select>
+          <div class="admin-quiz-actions">
+            <button type="button" class="solid-btn" id="adminQuizGuessAdd"><i class="fa-solid fa-plus"></i> Savol qo'shish</button>
+            <button type="button" class="ghost-btn" id="adminQuizGuessAuto"><i class="fa-solid fa-wand-magic-sparkles"></i> Darslikdan to'ldirish</button>
+            <button type="button" class="ghost-btn admin-danger-text" id="adminQuizGuessClear"><i class="fa-solid fa-eraser"></i> Avtomatik rejimga</button>
+          </div>
+          <div class="table-wrap"><table class="analysis-table admin-quiz-table" id="adminQuizGuessTable"></table></div>
+        </section>
+
+        <section class="card admin-quiz-panel" id="adminQuizPanelAuthor" data-quiz-panel="author" hidden>
+          <div class="card-head card-head--split">
+            <h3>Muallifni top — asarlar</h3>
+            <p class="admin-quiz-status" id="adminQuizAuthorStatus" aria-live="polite"></p>
+          </div>
+          <label class="admin-field-label" for="adminQuizAuthorPick">O'yin uchun savollar soni</label>
+          <select id="adminQuizAuthorPick" class="filter-select admin-quiz-pick">
+            <option value="5">5 ta</option>
+            <option value="6">6 ta</option>
+            <option value="7">7 ta</option>
+            <option value="8" selected>8 ta</option>
+            <option value="10">10 ta</option>
+          </select>
+          <div class="admin-quiz-actions">
+            <button type="button" class="solid-btn" id="adminQuizAuthorAdd"><i class="fa-solid fa-plus"></i> Asar qo'shish</button>
+            <button type="button" class="ghost-btn" id="adminQuizAuthorAuto"><i class="fa-solid fa-wand-magic-sparkles"></i> Barcha asarlardan</button>
+            <button type="button" class="ghost-btn admin-danger-text" id="adminQuizAuthorClear"><i class="fa-solid fa-eraser"></i> Avtomatik rejimga</button>
+          </div>
+          <p class="muted admin-form-hint">Har qator — o'yinda ko'rsatiladigan asar. Muallif nomi asar ma'lumotidan olinadi.</p>
+          <div class="table-wrap"><table class="analysis-table admin-quiz-table" id="adminQuizAuthorTable"></table></div>
+        </section>
+
+        <section class="card admin-quiz-panel" id="adminQuizPanelTruefalse" data-quiz-panel="truefalse" hidden>
+          <div class="card-head card-head--split">
+            <h3>To'g'ri / Noto'g'ri — gaplar</h3>
+            <p class="admin-quiz-status" id="adminQuizTfStatus" aria-live="polite"></p>
+          </div>
+          <label class="admin-field-label" for="adminQuizTfPick">O'yin uchun gaplar soni</label>
+          <select id="adminQuizTfPick" class="filter-select admin-quiz-pick">
+            <option value="6">6 ta</option>
+            <option value="8">8 ta</option>
+            <option value="10" selected>10 ta</option>
+            <option value="12">12 ta</option>
+          </select>
+          <div class="admin-quiz-actions">
+            <button type="button" class="solid-btn" id="adminQuizTfAdd"><i class="fa-solid fa-plus"></i> Gap qo'shish</button>
+            <button type="button" class="ghost-btn" id="adminQuizTfAuto"><i class="fa-solid fa-wand-magic-sparkles"></i> Darslikdan yaratish</button>
+            <button type="button" class="ghost-btn admin-danger-text" id="adminQuizTfClear"><i class="fa-solid fa-eraser"></i> Avtomatik rejimga</button>
+          </div>
+          <div class="table-wrap"><table class="analysis-table admin-quiz-table" id="adminQuizTfTable"></table></div>
+        </section>
+      </div>
+
+      <div class="admin-panel" id="adminPanelMap" data-admin-panel="map" hidden>
+        <section class="card">
+          <div class="card-head card-head--split">
+            <h3><i class="fa-solid fa-map-location-dot"></i> Qadriyatlar xaritasi</h3>
+            <button type="button" class="solid-btn admin-form-btn" id="adminMapSave"><i class="fa-solid fa-floppy-disk"></i> Saqlash</button>
+          </div>
+          <p class="muted admin-form-hint">Belgini xaritada tortib joylashtiring. Viloyat tanlang — infografika, asar va qadriyatni biriktiring.</p>
+          <div class="admin-map-layout">
+            <div class="admin-map-editor-wrap">
+              <div class="admin-map-bg-upload">
+                <label class="admin-field-label">Xarita fon rasmi</label>
+                <p class="admin-field-hint">PNG, JPG, WEBP yoki SVG — yangi xarita fonini shu yerdan yuklang.</p>
+                <div class="admin-map-info-upload">
+                  <label class="admin-file-label"><i class="fa-solid fa-map"></i> Fon yuklash
+                    <input type="file" id="adminMapBgImage" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden />
+                  </label>
+                  <button type="button" class="ghost-btn admin-mini-btn admin-danger" id="adminMapBgRemove" hidden><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <p class="muted admin-map-bg-default" id="adminMapBgDefaultHint">Standart fon: uz-map-kids.svg</p>
+                <img id="adminMapBgPreview" class="admin-map-bg-preview" alt="Xarita fon ko'rinishi" hidden />
+              </div>
+              <div class="admin-map-editor-stage" id="adminMapEditorStage">
+                <img class="uz-map-bg" src="assets/uz-map-kids.svg" alt="" decoding="async" />
+                <div class="admin-map-editor-pins" id="adminMapEditorPins"></div>
+              </div>
+              <p class="muted admin-map-drag-hint"><i class="fa-solid fa-up-down-left-right"></i> Belgini ushlab torting</p>
+            </div>
+            <aside class="admin-map-side">
+              <label class="admin-field-label" for="adminMapRegionSelect">Viloyat</label>
+              <select id="adminMapRegionSelect" class="filter-select"></select>
+              <div class="admin-map-coords">
+                <label class="admin-field-label" for="adminMapPosX">X (%)</label>
+                <input type="number" id="adminMapPosX" min="0" max="100" step="0.1" />
+                <label class="admin-field-label" for="adminMapPosY">Y (%)</label>
+                <input type="number" id="adminMapPosY" min="0" max="100" step="0.1" />
+              </div>
+              <label class="admin-field-label" for="adminMapValueSelect">Qadriyat</label>
+              <select id="adminMapValueSelect" class="filter-select"></select>
+              <label class="admin-field-label" for="adminMapWorkSelect">Asar</label>
+              <select id="adminMapWorkSelect" class="filter-select"></select>
+              <label class="admin-field-label">Infografika rasmi</label>
+              <p class="admin-field-hint">Belgini bosganda o'ng panelda chiqadigan rasm · JPG, PNG, WEBP · max 6 MB</p>
+              <div class="admin-map-info-upload">
+                <label class="admin-file-label"><i class="fa-solid fa-image"></i> Rasm yuklash
+                  <input type="file" id="adminMapInfoImage" accept="image/png,image/jpeg,image/webp" hidden />
+                </label>
+                <button type="button" class="ghost-btn admin-mini-btn admin-danger" id="adminMapInfoRemove" hidden><i class="fa-solid fa-trash"></i></button>
+              </div>
+              <img id="adminMapInfoPreview" class="admin-map-info-preview" alt="" hidden />
+              <div class="admin-map-text-fields">
+              <label class="admin-field-label" for="adminMapStory">Qisqa hikoya</label>
+              <textarea id="adminMapStory" class="admin-map-textarea" rows="3" maxlength="600" placeholder="Viloyat haqida qisqa matn…"></textarea>
+              <label class="admin-field-label" for="adminMapTale">Ertak / hikoya</label>
+              <textarea id="adminMapTale" class="admin-map-textarea" rows="3" maxlength="400" placeholder="Ertak yoki hikoya parchasi…"></textarea>
+              <label class="admin-field-label" for="adminMapTradition">An'ana</label>
+              <textarea id="adminMapTradition" class="admin-map-textarea" rows="3" maxlength="400" placeholder="Mahalliy an'ana…"></textarea>
+              <label class="admin-field-label" for="adminMapFact">Bilasizmi?</label>
+              <textarea id="adminMapFact" class="admin-map-textarea" rows="3" maxlength="400" placeholder="Qiziqarli fakt…"></textarea>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </div>
+
+      <div class="admin-panel" id="adminPanelStaff" data-admin-panel="staff" hidden>
+        <section class="card">
+          <div class="card-head"><h3><i class="fa-solid fa-user-shield"></i> Yangi o'qituvchi login</h3></div>
+          <form class="admin-inline-form" id="adminCreateTeacherForm">
+            <input type="text" id="adminTchName" placeholder="Ism familiya" required />
+            <input type="text" id="adminTchUser" placeholder="Login" required />
+            <input type="password" id="adminTchPass" placeholder="Parol" required minlength="4" />
+            <input type="text" id="adminTchSchool" placeholder="Maktab (ixtiyoriy)" />
+            <button type="submit" class="solid-btn admin-form-btn"><i class="fa-solid fa-user-plus"></i> Yaratish</button>
+          </form>
+        </section>
+        <section class="card">
+          <div class="card-head"><h3>Panel foydalanuvchilari</h3></div>
+          <div class="table-wrap"><table class="analysis-table" id="adminStaffTable"></table></div>
+        </section>
+      </div>
+
+      <div class="admin-work-modal" id="adminWorkModal" hidden>
+        <div class="admin-work-modal-backdrop" id="adminWorkModalBackdrop"></div>
+        <div class="admin-work-modal-panel" role="dialog" aria-labelledby="adminWorkEditHeading">
+          <div class="admin-work-modal-head">
+            <h3 id="adminWorkEditHeading"><i class="fa-solid fa-pen-to-square"></i> Asarni tahrirlash</h3>
+            <button type="button" class="ghost-btn admin-mini-btn" id="adminWorkEditClose" aria-label="Yopish"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="admin-work-modal-body">
+            <div class="admin-work-edit-grid">
+              <input type="text" id="adminWorkEditTitle" placeholder="Asar nomi" />
+              <input type="text" id="adminWorkEditAuthor" placeholder="Muallif" />
+              <select id="adminWorkEditGrade"><option value="3">3-sinf</option><option value="4">4-sinf</option></select>
+              <select id="adminWorkEditGenre"><option value="hikoya">Hikoya</option><option value="she'r">She'r</option><option value="ertak">Ertak</option><option value="masal">Masal</option><option value="matn">Matn</option></select>
+              <select id="adminWorkEditValue"></select>
+            </div>
+            <label class="admin-field-label" for="adminWorkEditSummary">Qisqacha mazmun</label>
+            <p class="admin-field-hint">Asar haqida 2–3 jumlalik qisqa tavsif (kutubxonada ko'rinadi)</p>
+            <textarea id="adminWorkEditSummary" rows="2" placeholder="Masalan: Ruben marvarid topadi va saxiylik haqida saboq oladi…"></textarea>
+            <label class="admin-field-label" for="adminWorkEditMoral">Saboq / hikmatli so'z</label>
+            <p class="admin-field-hint">Asardan olinadigan asosiy saboq yoki xulosa</p>
+            <textarea id="adminWorkEditMoral" rows="2" placeholder="Masalan: Haqiqiy baxt — boylikda emas, saxiylik va do'stlikda."></textarea>
+            <label class="admin-field-label" for="adminWorkEditFullText">Asar to'liq matni</label>
+            <p class="admin-field-hint">Darslikdagi to'liq hikoya, she'r yoki matn</p>
+            <textarea id="adminWorkEditFullText" rows="5" placeholder="Asarning butun matnini shu yerga yozing…"></textarea>
+            <div class="admin-work-image-row">
+              <img id="adminWorkEditImgPreview" class="admin-work-preview" alt="Asar rasmi" />
+              <label class="admin-file-label"><i class="fa-solid fa-image"></i> Rasmni almashtirish (puzzle uchun)
+                <input type="file" id="adminWorkEditImage" accept="image/png,image/jpeg,image/webp" hidden />
+              </label>
+            </div>
+            <div class="admin-tests-section">
+              <div class="admin-tests-head">
+                <h4><i class="fa-solid fa-list-check"></i> Testlar</h4>
+                <div class="admin-tests-actions">
+                  <button type="button" class="ghost-btn admin-mini-btn" id="adminWorkAddTest"><i class="fa-solid fa-plus"></i> Savol</button>
+                  <button type="button" class="ghost-btn admin-mini-btn" id="adminWorkRegenTests"><i class="fa-solid fa-wand-magic-sparkles"></i> 10 ta test yaratish</button>
+                </div>
+              </div>
+              <div class="admin-tests-editor" id="adminWorkTestsEditor"></div>
+            </div>
+          </div>
+          <div class="admin-work-modal-foot">
+            <button type="button" class="ghost-btn" id="adminWorkEditCancel">Bekor</button>
+            <button type="button" class="solid-btn" id="adminWorkEditSave"><i class="fa-solid fa-floppy-disk"></i> Saqlash</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-work-modal admin-stu-modal" id="adminValueModal" hidden>
+        <div class="admin-work-modal-backdrop" id="adminValueModalBackdrop"></div>
+        <div class="admin-work-modal-panel" role="dialog" aria-labelledby="adminValueEditHeading">
+          <div class="admin-work-modal-head">
+            <h3 id="adminValueEditHeading"><i class="fa-solid fa-seedling"></i> Qadriyatni tahrirlash</h3>
+            <button type="button" class="ghost-btn admin-mini-btn" id="adminValueEditClose" aria-label="Yopish"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="admin-work-modal-body">
+            <p class="muted" id="adminValueEditMeta"></p>
+            <label class="admin-field-label" for="adminValueEditName">Nom</label>
+            <input type="text" id="adminValueEditName" maxlength="60" />
+            <label class="admin-field-label" for="adminValueEditIcon">Font Awesome icon</label>
+            <input type="text" id="adminValueEditIcon" placeholder="fa-star" maxlength="40" />
+            <label class="admin-field-label" for="adminValueEditColor">Rang</label>
+            <input type="color" id="adminValueEditColor" />
+            <label class="admin-field-label" for="adminValueEditDesc">Tavsif</label>
+            <textarea id="adminValueEditDesc" rows="3" maxlength="300"></textarea>
+            <div class="admin-value-works" id="adminValueEditWorks"></div>
+          </div>
+          <div class="admin-work-modal-foot">
+            <button type="button" class="ghost-btn" id="adminValueEditCancel">Bekor</button>
+            <button type="button" class="solid-btn" id="adminValueEditSave"><i class="fa-solid fa-floppy-disk"></i> Saqlash</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 7. OTA-ONALAR PANELI ========== -->
+    <section class="page" id="page-ota-ona" hidden>
+      <div class="page-head">
+        <h2><i class="fa-solid fa-people-roof"></i> Ota-onalar paneli</h2>
+        <p class="muted">Farzandingiz progressi va qadriyatlar bo'yicha natijalarini kuzating.</p>
+      </div>
+      <div class="parent-stats" id="parentStats"></div>
+      <div class="two-col">
+        <section class="card"><div class="card-head"><h3><i class="fa-solid fa-chart-line"></i> Haftalik faollik</h3></div><div class="chart-box"><canvas id="activityChart"></canvas></div></section>
+        <section class="card"><div class="card-head"><h3><i class="fa-solid fa-seedling"></i> Qadriyatlar o'zlashtirilishi</h3></div><div class="chart-box"><canvas id="parentValuesChart"></canvas></div></section>
+      </div>
+      <section class="card">
+        <div class="card-head"><h3><i class="fa-solid fa-lightbulb"></i> Tavsiyalar</h3></div>
+        <ul class="tips-list" id="parentTips"></ul>
+      </section>
+    </section>
+
+    <!-- ========== ASAR TO'LIQ MATN ========== -->
+    <section class="page work-full-page" id="page-asar" hidden>
+      <div class="work-read-scene" id="workReadScene">
+        <img class="work-read-bg" id="workHeroImg" src="" alt="" />
+        <div class="work-read-content">
+          <button class="ghost-btn work-back-btn" id="workBackBtn" type="button">
+            <i class="fa-solid fa-arrow-left"></i> Kutubxonaga qaytish
+          </button>
+          <article class="work-read-panel">
+            <h1 class="work-read-title" id="workFullTitle"></h1>
+            <p class="work-read-meta" id="workFullMeta"></p>
+            <div class="work-read-text" id="workFullText"></div>
+            <p class="work-read-missing" id="workFullMissing" hidden>
+              Bu asarning to'liq matni darslik PDFlarida topilmadi.
+            </p>
+            <div class="work-read-rating-wrap" id="workReadRating" aria-label="Asar bahosi" hidden></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== IJOD (o'quvchi galereyasi) ========== -->
+    <section class="page" id="page-ijod" hidden>
+      <div class="ijod-hero">
+        <div class="ijod-hero-inner">
+          <div class="ijod-hero-text">
+            <p class="ijod-hero-kicker"><i class="fa-solid fa-sparkles"></i> Ijod maydoni</p>
+            <h2 class="ijod-hero-title">Qadriyatlarni rasm bilan ulashing</h2>
+            <p class="ijod-hero-sub">O'zingiz chizgan rasmlarni yuklang, sinfdoshlaringizning ijodini ko'ring va ilhom oling.</p>
+          </div>
+          <button type="button" class="solid-btn ijod-upload-cta" id="ijodOpenUpload">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Rasm yuklash
+          </button>
+        </div>
+      </div>
+      <div class="ijod-toolbar card">
+        <div class="ijod-filters">
+          <select id="ijodGradeFilter" class="filter-select" aria-label="Sinf bo'yicha">
+            <option value="">Barcha sinflar</option>
+            <option value="3">3-sinf</option>
+            <option value="4">4-sinf</option>
+          </select>
+          <select id="ijodValueFilter" class="filter-select" aria-label="Qadriyat bo'yicha">
+            <option value="">Barcha qadriyatlar</option>
+          </select>
+          <div class="ijod-sort-group" role="group" aria-label="Rasmlarni saralash">
+            <span class="ijod-sort-label">Saralash:</span>
+            <div class="ijod-sort-toggle">
+              <button type="button" class="ijod-sort-btn active" id="ijodSortNewest" data-sort="newest" aria-pressed="true" title="Eng yangi rasmlar birinchi">
+                <i class="fa-solid fa-check ijod-sort-check" aria-hidden="true"></i>
+                <i class="fa-solid fa-clock" aria-hidden="true"></i> Yangilar
+              </button>
+              <button type="button" class="ijod-sort-btn" id="ijodSortRating" data-sort="rating" aria-pressed="false" title="Eng yuqori baho birinchi">
+                <i class="fa-solid fa-check ijod-sort-check" aria-hidden="true"></i>
+                <i class="fa-solid fa-star" aria-hidden="true"></i> Reyting
+              </button>
+              <button type="button" class="ijod-sort-btn" id="ijodSortRandom" data-sort="random" aria-pressed="false" title="Tasodifiy tartibda">
+                <i class="fa-solid fa-check ijod-sort-check" aria-hidden="true"></i>
+                <i class="fa-solid fa-shuffle" aria-hidden="true"></i> Aralash
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="ijod-toolbar-meta">
+        <p class="ijod-sort-status" id="ijodSortStatus" data-sort="newest" aria-live="polite">
+          <i class="fa-solid fa-clock" aria-hidden="true"></i>
+          <span id="ijodSortStatusText">Eng yangi rasmlar birinchi ko'rsatilmoqda</span>
+        </p>
+        <p class="ijod-count muted" id="ijodCount"></p>
+      </div>
+      <div class="ijod-masonry" id="ijodGrid" aria-live="polite"></div>
+      <nav class="ijod-pagination" id="ijodPagination" hidden aria-label="Ijod rasmlari sahifalari"></nav>
+      <p class="empty-note" id="ijodEmpty" hidden>Hozircha rasmlar yo'q. Birinchi bo'lib o'z ijodingizni yuklang!</p>
+    </section>
+
+    <!-- ========== AUDIO (tezkor havola sahifasi) ========== -->
+    <section class="page" id="page-audio" hidden>
+      <div class="page-head">
+        <h2><i class="fa-solid fa-headphones"></i> Audio hikoyalar</h2>
+        <p class="muted">Asarni tanlang va matnni ovozli eshiting (brauzer ovozi orqali).</p>
+      </div>
+      <div class="audio-grid" id="audioGrid"></div>
+    </section>
+
+    <!-- ========== BIZ HAQIMIZDA ========== -->
+    <section class="page about-page" id="page-biz-haqimizda" hidden>
+      <div class="about-hero">
+        <div class="about-hero-bg" aria-hidden="true"></div>
+        <div class="about-hero-inner">
+          <div class="about-photo-wrap">
+            <div class="about-photo-ring" aria-hidden="true"></div>
+            <img class="about-photo" src="assets/madinaxon-abdullayeva.png" alt="Madinaxon Abdullayeva portreti" width="520" height="520" />
+            <span class="about-photo-badge"><i class="fa-solid fa-graduation-cap"></i> Magistr</span>
+          </div>
+          <div class="about-intro">
+            <p class="about-kicker"><i class="fa-solid fa-sparkles"></i> Loyiha muallifi</p>
+            <h2 class="about-name">Madinaxon Abdullayeva</h2>
+            <p class="about-name-sub">Madaminjon qizi</p>
+            <p class="about-role">Farg'ona davlat universiteti magistranti · Boshlang'ich ta'lim yo'nalishi</p>
+            <div class="about-tags">
+              <span class="about-tag"><i class="fa-solid fa-book-open"></i> Ta'lim va tarbiya nazariyasi</span>
+              <span class="about-tag"><i class="fa-solid fa-seedling"></i> Milliy qadriyatlar</span>
+              <span class="about-tag"><i class="fa-solid fa-palette"></i> Interaktiv ta'lim</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-body">
+        <article class="about-card about-card-quote">
+          <div class="about-card-icon" aria-hidden="true"><i class="fa-solid fa-quote-left"></i></div>
+          <h3>Dissertatsiya mavzusi</h3>
+          <p class="about-thesis">«Bolalar adabiyoti orqali o'quvchilarda milliy qadriyatlar va kompetensiyalarni shakllantirish»</p>
+          <p class="muted">70110501 — Ta'lim va tarbiya nazariyasi va metodikasi (boshlang'ich ta'lim yo'nalishi). Magistr akademik darajasini olish uchun yozilgan dissertatsiya.</p>
+        </article>
+
+        <article class="about-card">
+          <h3><i class="fa-solid fa-lightbulb"></i> Qadriyatlar Kaledaskopi nima?</h3>
+          <p>3–4-sinf o'quvchilari uchun yaratilgan interaktiv ta'lim platformasi. Bolalar adabiyoti orqali milliy qadriyatlarni o'rganish, o'yinlar va testlar bilan mustahkamlash, ijod galereyasi orqali o'z bilimini namoyish etish imkonini beradi.</p>
+        </article>
+
+        <div class="about-stats" id="aboutStats"></div>
+
+        <article class="about-card about-card-mission">
+          <h3><i class="fa-solid fa-heart"></i> Maqsad va g'oya</h3>
+          <ul class="about-list">
+            <li><i class="fa-solid fa-check"></i> Har bir o'quvchi o'z milliy qadriyatlarini sevib, hayotda qo'llashini o'rganadi</li>
+            <li><i class="fa-solid fa-check"></i> Darslik asarlari o'qish, o'yin va testlar orqali jonlanadi</li>
+            <li><i class="fa-solid fa-check"></i> Ota-ona va o'qituvchilar farzand progressini kuzatishi mumkin</li>
+            <li><i class="fa-solid fa-check"></i> Gamifikatsiya — XP, yulduzlar va mukofotlar bilan motivatsiya</li>
+          </ul>
+        </article>
+
+        <article class="about-card about-card-org">
+          <h3><i class="fa-solid fa-building-columns"></i> Muassasa</h3>
+          <p class="about-org-line">O'zbekiston Respublikasi Oliy ta'lim, fan va innovatsiyalar vazirligi</p>
+          <p class="about-org-line about-org-strong">Farg'ona davlat universiteti</p>
+          <p class="muted about-copy-note">Qo'lyozma huquqida · © 2026. Barcha huquqlar himoyalangan.</p>
+        </article>
+
+        <article class="about-card about-card-contact">
+          <h3><i class="fa-solid fa-envelope"></i> Bog'lanish uchun pochta</h3>
+          <p><a href="mailto:madinabonumadaminjonovna@gmail.com" class="about-email-link">madinabonumadaminjonovna@gmail.com</a></p>
+        </article>
+
+        <div class="about-actions">
+          <a href="#bosh" class="about-text-link" data-nav="bosh"><i class="fa-solid fa-house"></i> Bosh sahifaga qaytish</a>
+          <a href="#kutubxona" class="about-text-link" data-nav="kutubxona"><i class="fa-solid fa-book-open"></i> Asarlarni ko'rish</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <button type="button" class="scroll-top-btn" id="scrollTopBtn" hidden aria-label="Yuqoriga qaytish">
+    <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+  </button>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div class="footer-grid footer-grid-compact">
+        <div class="footer-col footer-col-left">
+          <p class="footer-brand">Qadriyatlar Kaledaskopi</p>
+          <p class="footer-org">Farg'ona davlat universiteti</p>
+          <p class="footer-org footer-org-muted">Oliy ta'lim, fan va innovatsiyalar vazirligi</p>
+        </div>
+        <div class="footer-col footer-col-center">
+          <nav class="footer-nav-links" aria-label="Sayt havolalari">
+            <a href="#biz-haqimizda" class="footer-text-link" data-nav="biz-haqimizda">Biz haqimizda</a>
+          </nav>
+          <p class="footer-copy">© 2026. Barcha huquqlar himoyalangan.</p>
+        </div>
+        <div class="footer-col footer-col-right">
+          <button type="button" class="footer-teacher-link" id="teacherDashOpen">
+            <i class="fa-solid fa-chalkboard-user"></i> Admin panel
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================ MODAL ============================ -->
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal" id="modal" role="dialog" aria-modal="true">
+      <button class="modal-close" id="modalClose" aria-label="Yopish"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- ============================ TOAST ============================ -->
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <!-- ============================ CHATBOT ============================ -->
+  <button class="bot-fab" id="botFab" aria-label="Bilimdon Bobo"><img src="assets/bilimdon-bobo.png" alt="Bilimdon Bobo" class="bot-ava-img"></button>
+  <div class="bot-window" id="botWindow" hidden>
+    <div class="bot-header">
+      <img src="assets/bilimdon-bobo.png" alt="Bilimdon Bobo" class="bot-ava bot-ava-img">
+      <div><b>Bilimdon Bobo</b><small>AI yordamchi</small></div>
+      <button class="bot-x" id="botClose" aria-label="Yopish"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="bot-msgs" id="botMsgs"></div>
+    <div class="bot-quick" id="botQuick"></div>
+    <form class="bot-input" id="botForm">
+      <input id="botInput" type="text" placeholder="Savolingizni yozing..." autocomplete="off" />
+      <button type="submit" aria-label="Yuborish"><i class="fa-solid fa-paper-plane"></i></button>
+    </form>
+  </div>
+
+  <!-- Skriptlar: ma'lumotlar avval, app keyin -->
+  <script src="js/work-fulltexts.js"></script>
+  <script src="js/textbook-data.js"></script>
+  <script src="js/work-tests-data.js"></script>
+  <script src="js/platform-data.js"></script>
+  <script src="js/bot-brain.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/confetti.js"></script>
+  <script src="js/crossword-engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 400" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff9f0"/>
+      <stop offset="45%" stop-color="#fff5e6"/>
+      <stop offset="100%" stop-color="#fde8d4"/>
+    </linearGradient>
+    <linearGradient id="ikatStripe" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c4304d"/>
+      <stop offset="35%" stop-color="#8f1530"/>
+      <stop offset="65%" stop-color="#245f8f"/>
+      <stop offset="100%" stop-color="#163f63"/>
+    </linearGradient>
+    <pattern id="diamondPat" width="56" height="56" patternUnits="userSpaceOnUse">
+      <path d="M28 6 L50 28 L28 50 L6 28 Z" fill="none" stroke="#c9922a" stroke-width="1.2" opacity="0.22"/>
+      <path d="M28 14 L42 28 L28 42 L14 28 Z" fill="#c4304d" opacity="0.08"/>
+    </pattern>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#4a3320" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Fon -->
+  <rect width="1440" height="400" fill="url(#sky)"/>
+  <rect x="0" y="0" width="1440" height="400" fill="url(#diamondPat)"/>
+
+  <!-- Chap tomonda matn uchun yengil krem maydon -->
+  <ellipse cx="320" cy="200" rx="380" ry="220" fill="#fffef8" opacity="0.72"/>
+
+  <!-- O'ng tomonda atlas zola -->
+  <g opacity="0.92">
+    <rect x="920" y="0" width="520" height="400" fill="url(#ikatStripe)" opacity="0.18"/>
+    <rect x="960" y="0" width="28" height="400" fill="#c4304d" opacity="0.35"/>
+    <rect x="1000" y="0" width="14" height="400" fill="#f0c14a" opacity="0.55"/>
+    <rect x="1030" y="0" width="22" height="400" fill="#163f63" opacity="0.45"/>
+    <rect x="1070" y="0" width="12" height="400" fill="#1a7a72" opacity="0.5"/>
+    <rect x="1100" y="0" width="30" height="400" fill="#6b3a7a" opacity="0.4"/>
+    <rect x="1150" y="0" width="16" height="400" fill="#f0c14a" opacity="0.45"/>
+    <rect x="1180" y="0" width="26" height="400" fill="#245f8f" opacity="0.5"/>
+    <rect x="1220" y="0" width="14" height="400" fill="#c4304d" opacity="0.4"/>
+    <rect x="1250" y="0" width="34" height="400" fill="#163f63" opacity="0.45"/>
+    <rect x="1300" y="0" width="18" height="400" fill="#c9922a" opacity="0.55"/>
+    <rect x="1340" y="0" width="24" height="400" fill="#8f1530" opacity="0.35"/>
+    <rect x="1380" y="0" width="60" height="400" fill="#163f63" opacity="0.25"/>
+  </g>
+
+  <!-- Atlas romb gullari -->
+  <g transform="translate(1080 90)" opacity="0.75">
+    <path d="M0 -48 L48 0 L0 48 L-48 0 Z" fill="none" stroke="#f0c14a" stroke-width="2.5"/>
+    <path d="M0 -32 L32 0 L0 32 L-32 0 Z" fill="#245f8f" opacity="0.55"/>
+    <path d="M0 -18 L18 0 L0 18 L-18 0 Z" fill="#c4304d" opacity="0.7"/>
+    <circle cx="0" cy="0" r="8" fill="#f0c14a"/>
+  </g>
+  <g transform="translate(1280 280)" opacity="0.7">
+    <path d="M0 -40 L40 0 L0 40 L-40 0 Z" fill="none" stroke="#f0c14a" stroke-width="2.2"/>
+    <path d="M0 -26 L26 0 L0 26 L-26 0 Z" fill="#6b3a7a" opacity="0.55"/>
+    <circle cx="0" cy="0" r="7" fill="#163f63"/>
+  </g>
+
+  <!-- ===== Doodle: Anor (pomegranate) ===== -->
+  <g transform="translate(780 260) rotate(-8)" filter="url(#softShadow)">
+    <circle cx="0" cy="0" r="42" fill="#c4304d" stroke="#8f1530" stroke-width="3"/>
+    <path d="M-8 -42 C0 -52 8 -52 8 -42" fill="none" stroke="#2d8a4e" stroke-width="4" stroke-linecap="round"/>
+    <path d="M0 -42 L0 -52" stroke="#2d8a4e" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="-14" cy="-6" rx="8" ry="10" fill="#8f1530" opacity="0.5"/>
+    <ellipse cx="12" cy="8" rx="7" ry="9" fill="#8f1530" opacity="0.45"/>
+    <ellipse cx="4" cy="-14" rx="6" ry="8" fill="#8f1530" opacity="0.4"/>
+    <path d="M-20 10 Q0 24 20 10" fill="none" stroke="#f0c14a" stroke-width="2" opacity="0.6"/>
+  </g>
+
+  <!-- ===== Doodle: Kitob va qalam ===== -->
+  <g transform="translate(650 120) rotate(6)" filter="url(#softShadow)">
+    <rect x="-38" y="-28" width="76" height="56" rx="4" fill="#245f8f" stroke="#163f63" stroke-width="3"/>
+    <rect x="-32" y="-22" width="64" height="44" rx="2" fill="#fffef8"/>
+    <line x1="-24" y1="-10" x2="18" y2="-10" stroke="#e6821e" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="-24" y1="0" x2="10" y2="0" stroke="#c9922a" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-24" y1="10" x2="14" y2="10" stroke="#c9922a" stroke-width="2" stroke-linecap="round"/>
+    <path d="M42 -20 L58 0 L42 20" fill="none" stroke="#163f63" stroke-width="3" stroke-linejoin="round"/>
+    <!-- qalam -->
+    <g transform="translate(70 -30) rotate(-35)">
+      <rect x="0" y="-4" width="48" height="8" rx="2" fill="#f0c14a" stroke="#c9922a" stroke-width="2"/>
+      <polygon points="48,-4 58,0 48,4" fill="#4a3320"/>
+      <rect x="-8" y="-5" width="10" height="10" rx="2" fill="#d94f7a"/>
+    </g>
+  </g>
+
+  <!-- ===== Doodle: Palitra va cho'tka (ijod) ===== -->
+  <g transform="translate(900 310) rotate(4)" filter="url(#softShadow)">
+    <ellipse cx="0" cy="0" rx="52" ry="44" fill="#fffef8" stroke="#4a3320" stroke-width="3"/>
+    <circle cx="-18" cy="-10" r="10" fill="#c4304d"/>
+    <circle cx="8" cy="-14" r="10" fill="#245f8f"/>
+    <circle cx="22" cy="6" r="10" fill="#2d8a4e"/>
+    <circle cx="-6" cy="16" r="10" fill="#f0c14a"/>
+    <circle cx="-28" cy="8" r="9" fill="#6b3a7a"/>
+    <!-- cho'tka -->
+    <g transform="translate(58 -20) rotate(25)">
+      <rect x="0" y="-5" width="36" height="10" rx="3" fill="#c9922a" stroke="#7a5200" stroke-width="2"/>
+      <path d="M36 -8 L52 -14 L52 14 L36 8 Z" fill="#4a3320"/>
+    </g>
+  </g>
+
+  <!-- ===== Doodle: Non / mehnat ===== -->
+  <g transform="translate(1020 200) rotate(-5)" filter="url(#softShadow)">
+    <ellipse cx="0" cy="8" rx="46" ry="18" fill="#d4a574" stroke="#7a5200" stroke-width="2.5"/>
+    <path d="M-40 0 Q-20 -28 0 -22 Q20 -28 40 0" fill="#e8b87a" stroke="#c9922a" stroke-width="3"/>
+    <path d="M-30 -4 Q0 -18 30 -4" fill="none" stroke="#fffef8" stroke-width="2" opacity="0.5"/>
+    <path d="M-20 2 Q0 -8 20 2" fill="none" stroke="#fffef8" stroke-width="1.5" opacity="0.4"/>
+  </g>
+
+  <!-- ===== Doodle: Lola gullar ===== -->
+  <g transform="translate(720 330)" filter="url(#softShadow)">
+    <path d="M0 0 Q-4 -30 0 -50 Q4 -30 0 0" fill="#2d8a4e" stroke="#1a5c32" stroke-width="2"/>
+    <ellipse cx="0" cy="-52" rx="14" ry="20" fill="#d94f7a" stroke="#a8325a" stroke-width="2"/>
+    <ellipse cx="0" cy="-52" rx="6" ry="10" fill="#f0c14a" opacity="0.7"/>
+  </g>
+  <g transform="translate(750 340) rotate(12)" opacity="0.85">
+    <path d="M0 0 Q-3 -22 0 -38 Q3 -22 0 0" fill="#2d8a4e" stroke="#1a5c32" stroke-width="1.8"/>
+    <ellipse cx="0" cy="-40" rx="11" ry="16" fill="#c4304d" stroke="#8f1530" stroke-width="1.8"/>
+  </g>
+
+  <!-- ===== Doodle: Qo'l berish (hormat / do'stlik) ===== -->
+  <g transform="translate(840 130) rotate(-3)" filter="url(#softShadow)">
+    <path d="M-50 10 L-30 -8 L-10 4 L10 -8 L30 4 L50 10" fill="none" stroke="#e6821e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="-52" y="8" width="22" height="28" rx="8" fill="#fde8d4" stroke="#4a3320" stroke-width="2.5"/>
+    <rect x="-12" y="0" width="24" height="32" rx="8" fill="#fde8d4" stroke="#4a3320" stroke-width="2.5"/>
+    <rect x="30" y="8" width="22" height="28" rx="8" fill="#fde8d4" stroke="#4a3320" stroke-width="2.5"/>
+    <path d="M-38 20 L-38 32 M38 20 L38 32" stroke="#4a3320" stroke-width="2" stroke-linecap="round"/>
+    <!-- yulduzcha -->
+    <path d="M0 -28 L3 -18 L13 -18 L5 -11 L8 -1 L0 -7 L-8 -1 L-5 -11 L-13 -18 L-3 -18 Z" fill="#f0c14a" stroke="#c9922a" stroke-width="1.2"/>
+  </g>
+
+  <!-- ===== Doodle: Oilaviy baxt (ota-ona + bola) ===== -->
+  <g transform="translate(580 280) rotate(-2)" filter="url(#softShadow)">
+    <!-- ota -->
+    <circle cx="-28" cy="-30" r="16" fill="#fde8d4" stroke="#4a3320" stroke-width="2.5"/>
+    <path d="M-44 0 Q-28 18 -12 0 L-12 36 L-44 36 Z" fill="#245f8f" stroke="#163f63" stroke-width="2.5"/>
+    <!-- ona -->
+    <circle cx="28" cy="-32" r="15" fill="#fde8d4" stroke="#4a3320" stroke-width="2.5"/>
+    <path d="M12 0 Q28 20 44 0 L44 38 L12 38 Z" fill="#c4304d" stroke="#8f1530" stroke-width="2.5"/>
+    <!-- bola -->
+    <circle cx="0" cy="-8" r="12" fill="#fde8d4" stroke="#4a3320" stroke-width="2"/>
+    <path d="M-12 8 Q0 22 12 8 L12 28 L-12 28 Z" fill="#2d8a4e" stroke="#1a5c32" stroke-width="2"/>
+    <!-- qalblar -->
+    <path d="M-50 -50 L-46 -42 L-42 -50 Q-46 -58 -50 -50" fill="#d94f7a" opacity="0.7"/>
+    <path d="M46 -48 L50 -40 L54 -48 Q50 -56 46 -48" fill="#d94f7a" opacity="0.7"/>
+  </g>
+
+  <!-- ===== Doodle: Registon gumbazi (madaniyat) ===== -->
+  <g transform="translate(1180 160) rotate(2)" opacity="0.8" filter="url(#softShadow)">
+    <path d="M-55 40 L-55 10 Q-55 -20 0 -35 Q55 -20 55 10 L55 40 Z" fill="#47a8d4" stroke="#245f8f" stroke-width="2.5"/>
+    <path d="M-55 10 Q0 -5 55 10" fill="#6bc4e8" opacity="0.6"/>
+    <rect x="-8" y="-48" width="16" height="22" rx="2" fill="#f0c14a" stroke="#c9922a" stroke-width="1.5"/>
+    <ellipse cx="0" cy="-52" rx="10" ry="6" fill="#c9922a"/>
+    <rect x="-55" y="40" width="110" height="8" rx="2" fill="#c9922a" stroke="#7a5200" stroke-width="1.5"/>
+    <!-- minor minora -->
+    <rect x="-62" y="0" width="10" height="48" fill="#47a8d4" stroke="#245f8f" stroke-width="2"/>
+    <rect x="-64" y="-8" width="14" height="10" rx="2" fill="#f0c14a"/>
+    <rect x="52" y="0" width="10" height="48" fill="#47a8d4" stroke="#245f8f" stroke-width="2"/>
+    <rect x="50" y="-8" width="14" height="10" rx="2" fill="#f0c14a"/>
+  </g>
+
+  <!-- ===== Doodle: O'zbekiston ramzi  quyosh va tolqin (stilize) ===== -->
+  <g transform="translate(1350 60)" opacity="0.55">
+    <circle cx="0" cy="0" r="28" fill="#f0c14a" stroke="#c9922a" stroke-width="2"/>
+    <circle cx="0" cy="0" r="18" fill="#fffef8" opacity="0.35"/>
+    <path d="M-40 28 Q0 8 40 28" fill="none" stroke="#47a8d4" stroke-width="4" stroke-linecap="round"/>
+    <path d="M-40 38 Q0 18 40 38" fill="none" stroke="#2d8a4e" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- ===== Doodle: Yulduzlar va nuqtalar (bolalar chizg'i uslubi) ===== -->
+  <g fill="none" stroke-linecap="round" opacity="0.45">
+    <path d="M520 80 L530 80 M525 75 L525 85" stroke="#e6821e" stroke-width="2.5"/>
+    <path d="M860 60 L868 68 L860 76 L852 68 Z" stroke="#f0c14a" stroke-width="2" fill="#f0c14a" opacity="0.5"/>
+    <circle cx="960" cy="50" r="4" fill="#c4304d" stroke="none" opacity="0.5"/>
+    <circle cx="680" cy="70" r="5" fill="#245f8f" stroke="none" opacity="0.4"/>
+    <path d="M540 350 Q550 340 560 350" stroke="#2d8a4e" stroke-width="2"/>
+    <path d="M1100 350 L1110 345 L1120 355 L1110 360 Z" stroke="#6b3a7a" stroke-width="1.8" fill="#6b3a7a" opacity="0.35"/>
+  </g>
+
+  <!-- Pastki dekorativ chiziq -->
+  <path d="M0 370 Q360 340 720 370 T1440 360 L1440 400 L0 400 Z" fill="#e6821e" opacity="0.12"/>
+  <path d="M0 385 Q400 360 800 385 T1440 375 L1440 400 L0 400 Z" fill="#245f8f" opacity="0.08"/>
+</svg>

@@ -1,0 +1,64 @@
+UMUMIY USLUB (har bir prompt boshiga qo'shing):
+Milliy qadriyatlar darsligi illustratsiyasi. O'zbekiston va Markaziy Osiyo an'anaviy estetikasi: Timuriy miniatura va zamonaviy o'zbek darslik san'atining uyg'unligi. Terrakota, lapis ko'k, oltin sariq, to'q yashil, anor qizili ranglar. Suzani naqshlari yengil ramka sifatida. Issiq tabiiy yorug'lik, gouache/suvrang tekstura. Disney, Pixar, anime yoki G'arb multfilmi EMAS. Hurmat, tarbiya, milliy ruh. Matnsiz, harf yo'q, kvadrat kompozitsiya.
+
+---
+
+1. temir-qoziq.png | Vatan madhi dillarda
+O'zbek maktab o'quvchilari (3-4-sinf) sinf xonasida o'tirib, derazadan serquyosh O'zbekiston manzarasi ko'rinadi — bog', masjid gumbazi silueti, bayroq ranglari. Bolalar qalblari Vatan muhabbatini ifodalaydi. Milliy kiyim elementlari: duppi, skarf. Miniatura uslubida iliq, ilhomli, vatanparvarlik ruhida.
+
+2. karim-polvon.png | Karim polvon
+Kuzgi O'zbekiston stepida uloq-ko'pkari musobaqasi: jasur chavandoz (chapan, duppi) jiyron ot ustida. Orqa fonda tog' etagida qishloq, odamlar hurmat bilan qarab turadi. Milliy sport va mardlik ramzi. An'anaviy ranglar, dinamik lekin multfilmsiz, hurmatli tasvir.
+
+3. chin-va-yolgon.png | Chin do'st
+Uchta o'zbek yollaridagi yengil mashina (zamonaviy, lekin oddiy) katta daraxt soyasida dam olmoqda. Eng kichik mashina boshqalarga yordam beradi — kamtarlik va do'stlik ramzi. O'zbekiston qishloq yo'li, anor daraxti, milliy landshaft. Inson emas, mashinalar personaj, lekin tabiiy va tarbiyaviy uslubda.
+
+4. mehnat-bahosi.png | Mehnat qurollari nima deydi?
+Bolg'a, ombur, pansha, arra — mehnat qurollari jonli emas, balki chiroyli joylashtirilgan kompozitsiya: o'zbek usta ustaxonasida, yog'och va temir ishlar. Mehnatsevarlik va kasb hurmati. Suzani naqshli fon, issiq yorug'lik, darslik illustratsiyasi.
+
+5. dustlik-kemasi.png | Do'stlik yo'lagi
+Qishki o'zbek mahallasida ikki qo'shni erkak (chapan, duppi) qor tozalab yo'l ochmoqda — biri allaqachon ochgan, biri hayratda. Do'stlik va saxovatlilik, hech mag'rurlik yo'q. Qor, milliy uy-ro'zg'or arxitekturasi, issiq insoniy munosabat.
+
+6. saxiy-dehqon.png | Tabiat zanjiri
+Tog' dan tug'ayotgan pokiza daryo, bolalar va katta yoshli odam daryo tubidagi chiqindilarni tozalayapti. Tabiatni asrash, mehr va mas'uliyat. O'zbekiston tog'-o'tloq landshafti, yashil va ko'k tonlar, milliy tarbiya mazmuni.
+
+7. zardoz.png | Orolim
+O'zbekistonning Orol dengizi qirg'og'i: qurigan yer va uzoqda suv izi. Ota/bobom va bola (milliy kiyim) qo'l ushlashib, tabiat muammosidan xavotir. Milliy tabiat muhabbati, g'amgin lekin umidli ruh. An'anaviy miniatura palitra.
+
+8. halol-savdogar.png | Abu Rayhon Beruniy
+Yosh Abu Rayhon Beruniy (Xorazm) usturlob bilan osmonni kuzatmoqda, yonida qiziqish bilan qarab turgan o'zbek bola (Muhammad). Ilm-fan va olimlarga hurmat. Qadimiy Kot shahar silueti, yulduzli osmon, ko'k va oltin ranglar.
+
+9. ota-nasihati.png | Bog'bon va nihol
+O'zbek bog'bon (katta yosh) ikkita nihol yonida: biri to'g'ri kesilgan va serhosil, biri shoxi tarqoq. Tarbiya va vaqtida o'rgatish ramzi. Bog', anor daraxti, milliy bog'dorchilik an'anasi. Sabr va donolik ruhida.
+
+10. mehribon-qiz.png | Keksalarni hurmat qil
+O'zbek qiz bolasi keksa buviga choy quyib bermoqda, buvi o'tirgan to'shakda duo qilmoqda. Ota-onaga va katta yoshlarga hurmat. Uy ichi milliy elementlar: gilam, dasturxon. Mehr, nafislik, miniatura uslubida iliq sahna.
+
+11. ona-qarzi.png | Ona qarzi
+O'zbek onasi va o'g'il bolasi quchoqlashgan — bola ona oyog'iga yig'lab kechirim so'ragan. Ona mehrining bebaho ekanligi. Uy ichi, milliy gilam, yumshoq yorug'lik. Juda hissiy lekin hurmatli, tarbiyaviy, Disney emas.
+
+12. adolatli-qozi.png | Merosga kim munosib?
+Qadimiy o'zbek ota va besh o'g'il hikoya lahzasi: oltin hamyon, ota sinov qilmoqda. Kenja o'g'il halol va mehr bilan javob beradi. Halollik va insof. Qadimiy shahar fon, milliy kiyim, adolat ramzi — tarozi silueti uzoqda.
+
+13. yolgonchi-cho'pon.png | Bir butun oy, o'n ikki yulduz
+Yosh o'zbek bola (Tohir) qishloq yo'lida bobosiga ovqat tuguni olib ketmoqda. Tugunda chuchvara va qatlama ko'rinadi — rostgo'ylik saboqi. Qishloq, qir fon, milliy kiyim. Halollik va odob tarbiyasi.
+
+14. navruz-bayrami.png | Mehr urug'i
+Qadimiy o'zbek bozor do'konchisi va boy odam qutichada uchta urug' ko'rsatmoqda — mehr, muhabbat va oqibat urug'i. Orqa fonda bozor, milliy arxitektura. Oilaviy qadriyatlar, iliq ranglar, rivoyat uslubida.
+
+15. kitob-dosti.png | Kitob — kuch
+O'zbek o'quvchisi (duppi) ochiq kitob bilan o'tirib o'qimoqda, kitobdan yorug'lik tarqalmoqda. Bilim va kitobga hurmat. Uy yoki maktab kutubxonasi, milliy gilam, ilm merosi ruhida.
+
+16. mardlik-qissasi.png | Kitobni do'st bilganlar
+O'zbek o'quvchisi kitobni do'stidek quchoqlab, orqa fonda O'zbekiston manzarasi va bayroq ranglari (bayroq tasviri aniq emas, faqat rang ohanglari). Kitob, ona til, vatanparvarlik. Ilm-fan va millat faxri.
+
+17. vatan-yoshlari.png | Yurt madhi
+Stilize O'zbekiston xaritasi yoki viloyat ramzlari: Registon, Temur haykali silueti, Buxoro minora, tog'lar — barchasi bir kompozitsiyada, yurt madhi ruhida. Milliy g'urur, rang-barang lekin an'anaviy palitra. She'r illustratsiyasi.
+
+18. marvarid.png | Yagonadir Vataning sening!
+Bitta muqaddas daraxt o'z vatan tuprog'ida chuqur ildiz bilan — yagona Vatan ramzi. O'zbekiston stepi va tog' silueti. Ildizlar tuproqqa singan, birdan uzoqdagi o'xshash daraxtlar bilan sirli aloqa (yengil nur chizig'i). Vatan muhabbati.
+
+19. boburning-bolaligi.png | Sohibqiron bobom mening
+Amir Temur (sahibqiron) ot ustida — yosh o'zbek o'quvchisi oldida faxrlanib turibdi. Tarix va ajdodlar merosi. Samarqand Registon silueti orqa fonda. Mardlik, adolat, o'qish va xizmat chaqirig'i ruhida.
+
+20. oltin-tarvuz.png | Vatan — jon fidolikdir
+O'zbek bola o'z uyining ostonasida (milliy uy) Vatan tuprog'iga qo'l qo'ygan, orqa fonda obod qishloq/shahar. «Vatan ostonadan boshlanadi» falsafasi. Vatanparvarlik, tinchlik, mas'uliyat. Issiq, milliy, tarbiyaviy.

@@ -1,0 +1,258 @@
+{
+  "works": [],
+  "overrides": {
+    "mehnat-bahosi": {
+      "title": "Mehnat qurollari nima deydi?",
+      "author": "Ne’mat Dushayev",
+      "grade": 3,
+      "genre": "she'r",
+      "part": 1,
+      "valueMain": "mehnatsevarlik",
+      "values": [
+        "mehnatsevarlik"
+      ],
+      "summary": "Bolg‘a Dangasa demang meni,Men har ishda chaqqonman.Bultur bir qop yong‘oqniBitta o‘zim chaqqanman.Bir qop yong‘oqqa, ehhe,Qancha odam to‘yrnoqda.Mix deysizmi, bolg‘avoyO‘zi qoqib qo‘ymoqda. Ombur Xato qilsa bolg‘avoy,Darrovda tuzataman.Qiyshiq mixni sug‘urib,To‘g‘rilab…",
+      "moral": "Mehnat qiluvchi har doim hurmatga loyiq.",
+      "fullText": "Bolg‘a Dangasa demang meni,\nMen har ishda chaqqonman.\nBultur bir qop yong‘oqni\nBitta o‘zim chaqqanman.\nBir qop yong‘oqqa, ehhe,\nQancha odam to‘yrnoqda.\nMix deysizmi, bolg‘avoy\nO‘zi qoqib qo‘ymoqda.\n\nOmbur Xato qilsa bolg‘avoy,\nDarrovda tuzataman.\nQiyshiq mixni sug‘urib,\nTo‘g‘rilab uzataman.\nIkki jag‘im — boyligim,\nIsh ko‘p, ulgurish kerak.\nYordamlashib yuboring,\nMixni sug‘urish kerak.\n\nPanshaxa Xashak o‘psa o‘roqvoy,\nYig‘ib, g‘aram qilaman.\nBundan tashqari sabzi\nQazishniyam bilaman.\nUy-ro‘zg‘orga qarashib,\nYoz-u qish ishim “besh”da.\nBuyog‘in so‘rasangiz,\nBarmoqlarim ham beshta.\n\nArra Shoxmi, daraxt yo taxta\nShart-shurt arralagayman.\nHushyor bo‘ling, qo‘lingiz\nYo‘qsa, yaralagayman.\nUsta duradgor bilan\nHali ko‘pdir ishlarim.\nTishlarimmi, temirdan\nOg‘rimaydi tishlarim.",
+      "questions": [],
+      "tests": [
+        {
+          "q": "Kim qishga tayyorgarlik ko'rdi?",
+          "options": [
+            "Chumoli",
+            "Tsikada",
+            "Hech kim",
+            "Ikkalasi ham"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Tsikada yozda nima qildi?",
+          "options": [
+            "Faqat kuyladi",
+            "Don to'pladi",
+            "Uy qurdi",
+            "Sayohat qildi"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Qishda tsikada nima bo'ldi?",
+          "options": [
+            "Och qoldi",
+            "Boy bo'ldi",
+            "Sayohat qildi",
+            "Uy oldi"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Asarning qadriyati qaysi?",
+          "options": [
+            "Mehnatsevarlik",
+            "Dangasalik",
+            "Yolg'on",
+            "Hasad"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Chumoli tsikadaga nima qildi?",
+          "options": [
+            "Yordam berdi",
+            "Haqorat qildi",
+            "Quvib yubordi",
+            "E'tibor bermadi"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Asar qaysi janrga kiradi?",
+          "options": [
+            "Masal",
+            "She'r",
+            "Ertak",
+            "Matn"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Asar muallifi kim?",
+          "options": [
+            "Shukur Sa'dulla",
+            "Mirtemir",
+            "Ezop",
+            "Po'lat Mo'min"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Chumoli nima to'pladi?",
+          "options": [
+            "Don",
+            "Oltin",
+            "Kitob",
+            "Gul"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Asar qaysi sinf darsligida?",
+          "options": [
+            "3-sinf",
+            "4-sinf",
+            "5-sinf",
+            "2-sinf"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Masal saboqi nima?",
+          "options": [
+            "Mehnat qilgan rohat ko'radi",
+            "Dangasalik yaxshi",
+            "Faqat kuylash kerak",
+            "Uxlash kerak"
+          ],
+          "correct": 0
+        }
+      ],
+      "crossword": [],
+      "illustration": {
+        "emoji": "📖",
+        "gradient": "linear-gradient(135deg,#e6821e,#7b3f00)"
+      },
+      "keywords": [],
+      "imageUrl": null,
+      "updated_at": "2026-06-12T14:18:16.094Z"
+    },
+    "temir-qoziq": {
+      "title": "Vatan madhi dillarda",
+      "author": "Darslik",
+      "grade": 3,
+      "genre": "matn",
+      "part": 1,
+      "valueMain": "vatanparvarlik",
+      "values": [
+        "vatanparvarlik"
+      ],
+      "summary": "Vatan! Bu so‘z bizning qalbimizga ona allasidan, uning qaynoq muhabbatidan singadi. Agar ma’lum bir muddat o‘z uyimizdan sal olisroqda yashab qolsak, ko‘nglimiz g‘ash bo‘laveradi. Har qanday ko‘ngilochar narsalar ham bizni quvontira olmaydi. Negaki, biz o‘z go‘shamizni qo‘msay…",
+      "moral": "Vatan — yagona va muqaddas; uni sevish har bir farzandning burchi.",
+      "fullText": "Vatan! Bu so‘z bizning qalbimizga ona allasidan, uning qaynoq muhabbatidan singadi. Agar ma’lum bir muddat o‘z uyimizdan sal olisroqda yashab qolsak, ko‘nglimiz g‘ash bo‘laveradi. Har qanday ko‘ngilochar narsalar ham bizni quvontira olmaydi. Negaki, biz o‘z go‘shamizni qo‘msay boshlaymiz. Bu Vatanni sevishning bir ko‘rinishi emasmi?! Vatanga muhabbat, uni ardoqlash, ona Vatanga tegishli bo‘lgan har bir narsani muqaddas bilish, o‘zini shu Vatan kengliklariga daxldor deb his qilish haqiqiy insonlarga xos fazilatdir.\n\nAziz bolajonlar, mana, yana bir yoshga ulg‘aydik. Orzu-o‘ylarimiz, niyatlarimiz ham biz bilan qo‘l ushlashib bo‘y cho‘zmoqda. Ulg‘ayganimiz sari qalbimizda, ongimizda yangi-yangi tuyg‘ular uyg‘ona boshlaydi. Vatanga muhabbat, ota-onaga hurmat, ajdodlarga nisbatan iftixor, mas’uliyat, ishonch kabi tuyg‘ular qatoriga o‘nlab, yuzlab tuyg‘ularni kiritish mumkin. Bu tuyg‘ularning asosi muhabbatdir.\n\nBizni o‘z quchog‘iga olgan, tinch va osoyishta yashayotgan, ilm olayotgan Vatanimizni sevmay bo‘ladimi?! O‘zbekiston deya atalmish, bog‘larida jannat shivirlaydigan serquyosh o‘lkamizda dunyoni qalam bilan tebratgan ne-ne shoirlar, o‘z aqli bilan hozirgi kunda ham olam ahlini lol qoldirib kelayotgan olim-u fuzalolar yetishib chiqqan. Biz buyuk bobolarimiz bilan faxrlanamiz va ularga munosib avlod bo‘lishga intilamiz.",
+      "questions": [],
+      "tests": [
+        {
+          "q": "Matn qaysi qadriyat haqida?",
+          "options": [
+            "Vatanparvarlik",
+            "Yolg'on",
+            "Hasad",
+            "Dangasalik"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Vatanga muhabbat nimadan boshlanadi?",
+          "options": [
+            "Ona allasidan singadi",
+            "Pul topishdan",
+            "Sayohatdan",
+            "O'yindan"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Matn qaysi sinf darsligiga tegishli?",
+          "options": [
+            "3-sinf",
+            "4-sinf",
+            "5-sinf",
+            "2-sinf"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Ulg'ayganimiz sari qanday tuyg'ular uyg'onadi?",
+          "options": [
+            "Vatanga muhabbat, ota-onaga hurmat",
+            "Faqat o'yin",
+            "Hasad",
+            "Yolg'on"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Matn janri nima?",
+          "options": [
+            "Matn",
+            "She'r",
+            "Ertak",
+            "Masal"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "O'zbekiston qanday o'lkalar?",
+          "options": [
+            "Serquyosh, bog'lari jannat shivirlaydigan",
+            "Faqat cho'l",
+            "Faqat tog'",
+            "Dengiz oroli"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Buyuk bobolarimiz haqida nima deyiladi?",
+          "options": [
+            "Faxrlanamiz va munosib avlod bo'lamiz",
+            "Unutamiz",
+            "Yolg'on gapiramiz",
+            "Qo'rqamiz"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Vatanni ardoqlash nima degani?",
+          "options": [
+            "Muqaddas bilish",
+            "E'tiborsiz qoldirish",
+            "Tark etish",
+            "Haqorat qilish"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Tuyg'ularning asosi nima?",
+          "options": [
+            "Muhabbat",
+            "Yolg'on",
+            "Hasad",
+            "Qo'rquv"
+          ],
+          "correct": 0
+        },
+        {
+          "q": "Matn saboqi nima?",
+          "options": [
+            "Vatanni sevish haqiqiy inson fazilati",
+            "Vatandan qochish kerak",
+            "Uzoqda yashash yaxshi",
+            "O'yin muhim"
+          ],
+          "correct": 0
+        }
+      ],
+      "crossword": [],
+      "illustration": {
+        "emoji": "📖",
+        "gradient": "linear-gradient(135deg,#e6821e,#7b3f00)"
+      },
+      "keywords": [],
+      "imageUrl": "/uploads/works/temir-qoziq.png",
+      "updated_at": "2026-06-12T15:26:25.115Z"
+    }
+  },
+  "hiddenIds": [
+    "mardlik-qissasi"
+  ]
+}

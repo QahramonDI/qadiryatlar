@@ -1,0 +1,12 @@
+{
+  "values": [],
+  "overrides": {
+    "dustlik": {
+      "name": "Do'stlik",
+      "icon": "fa-user-group",
+      "color": "#3a8fd6",
+      "desc": "Sadoqatli o'rtoqlik, hamkorlik va birlikda kuch topish."
+    }
+  },
+  "hiddenIds": []
+}

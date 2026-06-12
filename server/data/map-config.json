@@ -1,0 +1,137 @@
+{
+  "regions": {
+    "qoraqalpogiston": {
+      "mapX": 18.9,
+      "mapY": 36.6,
+      "workId": "dustlik-kemasi",
+      "value": "dustlik",
+      "infographicUrl": "/uploads/map/qoraqalpogiston.png",
+      "story": "Qoraqalpog'iston — Orol dengizi bo'yi, kashtachilik va do'stlik yurti. Bu yerda odamlar qo'shnilar bilan birga ishlaydi, kemada ham, hayotda ham qo'l beradi.",
+      "tale": "Do'stlik yo'lagi hikoyasida qo'shnilar bir-biriga yo'l ochib, saxovat ko'rsatadi.",
+      "tradition": "Baliq ovi, kashtachilik va do'stlik dasturxonlari",
+      "fact": "Nukus — Xo'jayli Nurullayev nomidagi Davlat san'at muzeyi bilan mashhur."
+    },
+    "xorazm": {
+      "mapX": 36.7,
+      "mapY": 58.1,
+      "workId": "kitob-dosti",
+      "value": "masuliyat",
+      "story": "Xorazm — Xiva qal'asi, ilm va mas'uliyat diyori. Bu yerda har bir inson o'z vazifasini oxirigacha bajarishni o'rganadi.",
+      "tale": "Xiva devorlari asrlar davomida shaharni asrab kelgan — mas'uliyat va mehnat ramzi.",
+      "tradition": "Ichan qal'a, xiva palovi va hunarmandchilik",
+      "fact": "Ichan qal'a butun shahar ko'rinishida YuNESKO Jahon merosi ro'yxatida."
+    },
+    "navoiy": {
+      "mapX": 45.2,
+      "mapY": 38.9,
+      "workId": "zardoz",
+      "value": "mehnatsevarlik",
+      "story": "Navoiy — cho'l va tog'lar o'rtasidagi mehnatsevar insonlar yurti. Bu yerda zardo'zlik va kasb-hunar avlodlar davomida o'tadi.",
+      "tale": "Orolim she'rida tabiat va Orol muammosi haqida xavotir bildiriladi.",
+      "tradition": "G'ilam va zardo'zlik, cho'l karvonlari",
+      "fact": "Navoiy shahrida Alisher Navoiy nomidagi katta bog' barpo etilgan."
+    },
+    "buxoro": {
+      "mapX": 49.8,
+      "mapY": 71.5,
+      "workId": "halol-savdogar",
+      "value": "halollik",
+      "story": "Buxoroi sharif — ilm va halollik shahri. Imom Buxoriy yurtida to'g'ri so'z va pok yurak qadrlanadi.",
+      "tale": "Abu Rayhon Beruniy yoshlikda ilm va osmon sirlarini o'rganadi.",
+      "tradition": "Ilm maskanlari, savdo va mehmondo'stlik",
+      "fact": "Buxoroda 140 dan ortiq madaniy meros obidalari saqlangan."
+    },
+    "qashqadaryo": {
+      "mapX": 58.3,
+      "mapY": 79.1,
+      "workId": "boburning-bolaligi",
+      "value": "dustlik",
+      "story": "Qashqadaryo — keng dashtlar va do'stparvar insonlar diyori. Shahrisabz — buyuk allomalar tug'ilgan maskan.",
+      "tale": "Sohibqiron bobom she'rida Amir Temur va bobolar merosi madh etiladi.",
+      "tradition": "Shahrisabz mehmonxonalari va ot sporti",
+      "fact": "Shahrisabz — Amir Temur va Bobur tarixiy merosi bilan mashhur."
+    },
+    "surxondaryo": {
+      "mapX": 69.7,
+      "mapY": 77.3,
+      "workId": "adolatli-qozi",
+      "value": "adolat",
+      "story": "Surxondaryo — janubiy darvoza, adolat va ilm yurti. Bu yerda haqqoniylik va insof yuksak qadriyat.",
+      "tale": "Merosga kim munosib? rivoyatida haqiqiy halollik sinovdan o'tadi.",
+      "tradition": "Termiz qadimiy shahri va bahor bayramlari",
+      "fact": "Termiz — qadimiy Bactria madaniyati markazlaridan biri."
+    },
+    "samarqand": {
+      "mapX": 46.4,
+      "mapY": 52.7,
+      "workId": "saxiy-dehqon",
+      "value": "saxovat",
+      "story": "Samarqand — Registon va buyuk sivilizatsiya markazi. Ajdodlarimiz saxovat va mehnat bilan shu shaharni obod qilgan.",
+      "tale": "Tabiat zanjiri rivoyatida daryo va odamlar o'rtasidagi munosabat tasvirlanadi.",
+      "tradition": "Registon, non va anor bayramlari",
+      "fact": "Registon maydoni 600 yildan ortiq tarixga ega."
+    },
+    "jizzax": {
+      "mapX": 56.5,
+      "mapY": 53.7,
+      "workId": "ota-nasihati",
+      "value": "ota-onaga-hurmat",
+      "story": "Jizzax — tog' va vodiy o'rtasidagi mehrli oilalar yurti. Bu yerda ota-onaga hurmat kundalik hayotning bir qismi.",
+      "tale": "Bog'bon va nihol rivoyatida to'g'ri tarbiya vaqtida berilishi kerakligi o'rgatiladi.",
+      "tradition": "Tog' o'roqlari, uzumzorlar va oilaviy dasturxon",
+      "fact": "Jizzax viloyati Zaamin milliy bog'i bilan mashhur."
+    },
+    "sirdaryo": {
+      "mapX": 63.1,
+      "mapY": 52.3,
+      "workId": "temir-qoziq",
+      "value": "masuliyat",
+      "story": "Sirdaryo — daryo bo'ylab yashovchi mehnatkash odamlar diyori. Bu yerda vazifani vaqtida bajarish qadrlanadi.",
+      "tale": "Vatan madhi dillarda matnida Vatanni sevish va ardoqlash haqida gapiriladi.",
+      "tradition": "Daryo bo'yi dehqonchilik va cho'ponchilik",
+      "fact": "Guliston — viloyat markazi, paxta va bog'dorchilik markazi."
+    },
+    "toshkent": {
+      "mapX": 76.4,
+      "mapY": 51.7,
+      "workId": "mehnat-bahosi",
+      "value": "mehnatsevarlik",
+      "story": "Toshkent — mehnat, ilm va zamonaviy hayot uyg'unlashgan poytaxt. Bu yerda har bir kasb o'z qadriyatiga ega.",
+      "tale": "Mehnat qurollari nima deydi? she'rida har bir asbob o'z mehnatidan gapiradi.",
+      "tradition": "Poytaxt madaniyati, hunarmandchilik va ilm-fan",
+      "fact": "Toshkent metrosi Markaziy Osiyodagi birinchi metro tizimi."
+    },
+    "namangan": {
+      "mapX": 85.2,
+      "mapY": 56.2,
+      "workId": "mehribon-qiz",
+      "value": "mehribonlik",
+      "story": "Namangan — gullar va mehribon insonlar shahri. Bu yerda qo'l yordami va g'amxo'rlik yuqori qadriyat.",
+      "tale": "Keksalarni hurmat qil she'rida katta yoshlarga mehr o'rgatiladi.",
+      "tradition": "Gul yetishtirish va mehribon qo'llar",
+      "fact": "Namangan an'anaviy gul bayrami bilan mashhur."
+    },
+    "andijon": {
+      "mapX": 92.3,
+      "mapY": 57.7,
+      "workId": "vatan-yoshlari",
+      "value": "vatanparvarlik",
+      "story": "Andijon — Bobur Mirzo vatani. Bu yer farzandlari vatanparvarlik va ilm bilan dunyoga tanilgan.",
+      "tale": "Yurt madhi she'rida viloyatlar va Ulug' O'zbekiston maqtovga olinadi.",
+      "tradition": "Bobur merosi va vodiysi mevalari",
+      "fact": "Zahiriddin Muhammad Bobur Andijonda tug'ilgan."
+    },
+    "fargona": {
+      "mapX": 85.2,
+      "mapY": 65.5,
+      "workId": "marvarid",
+      "value": "saxovat",
+      "infographicUrl": "/uploads/map/fargona.webp",
+      "story": "Farg'ona vodiysi — atlas, gullar va mehmondo'stlik diyori. Bu yer odamlari hosil va mehrni baham ko'radi.",
+      "tale": "Yagonadir Vataning sening! matnida Vatan yagona va muqaddas ekanligi tasvirlanadi.",
+      "tradition": "Atlas to'qimachilik, anor va do'stlik dasturxoni",
+      "fact": "Farg'ona vodiysi O'zbekistonning eng serhosil mintaqasi."
+    }
+  },
+  "backgroundUrl": "/uploads/map/background.png"
+}

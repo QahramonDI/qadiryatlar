@@ -1,0 +1,142 @@
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DATA_FILE = path.join(__dirname, "data", "ijod.json");
+
+function ensureFile() {
+  const dir = path.dirname(DATA_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify({ items: [] }, null, 2));
+}
+
+function readDb() {
+  ensureFile();
+  try {
+    return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+  } catch {
+    return { items: [] };
+  }
+}
+
+function writeDb(data) {
+  ensureFile();
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+function ratingStats(item, userId = null) {
+  const ratings = item.ratings || {};
+  const entries = Object.values(ratings);
+  const ratingCount = entries.length;
+  const averageRating = ratingCount
+    ? Math.round((entries.reduce((s, r) => s + r, 0) / ratingCount) * 10) / 10
+    : 0;
+  const out = { averageRating, ratingCount };
+  if (userId != null) {
+    const key = String(userId);
+    out.userRating = ratings[key] ?? null;
+  }
+  return out;
+}
+
+function enrichItem(item, userId = null) {
+  const { ratings, ...rest } = item;
+  return { ...rest, ...ratingStats(item, userId) };
+}
+
+export function listIjod({ grade, valueId, sortBy = "newest", userId = null, limit = 200 } = {}) {
+  let items = [...(readDb().items || [])].filter((i) => !i.hidden);
+  if (grade) items = items.filter((i) => +i.grade === +grade);
+  if (valueId) items = items.filter((i) => i.value_id === valueId);
+
+  if (sortBy === "rating") {
+    items.sort((a, b) => {
+      const sa = ratingStats(a);
+      const sb = ratingStats(b);
+      if (sb.averageRating !== sa.averageRating) return sb.averageRating - sa.averageRating;
+      if (sb.ratingCount !== sa.ratingCount) return sb.ratingCount - sa.ratingCount;
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+  } else {
+    items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+
+  return items.slice(0, limit).map((i) => enrichItem(i, userId));
+}
+
+export function createIjod(entry) {
+  const db = readDb();
+  const item = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    created_at: new Date().toISOString(),
+    ratings: {},
+    ...entry,
+  };
+  db.items.unshift(item);
+  writeDb(db);
+  return enrichItem(item);
+}
+
+export function deleteIjod(id, userId) {
+  const db = readDb();
+  const idx = db.items.findIndex((i) => i.id === id && +i.user_id === +userId);
+  if (idx < 0) return null;
+  const [removed] = db.items.splice(idx, 1);
+  writeDb(db);
+  return removed;
+}
+
+export function adminDeleteIjod(id) {
+  const db = readDb();
+  const idx = db.items.findIndex((i) => i.id === id);
+  if (idx < 0) return null;
+  const [removed] = db.items.splice(idx, 1);
+  writeDb(db);
+  return removed;
+}
+
+export function adminUpdateIjod(id, patch) {
+  const db = readDb();
+  const idx = db.items.findIndex((i) => i.id === id);
+  if (idx < 0) return null;
+  const item = db.items[idx];
+  if (patch.title != null) item.title = String(patch.title).trim().slice(0, 80);
+  if (patch.description != null) item.description = String(patch.description).trim().slice(0, 280);
+  if (patch.value_id != null) item.value_id = String(patch.value_id).trim();
+  if (patch.hidden != null) item.hidden = !!patch.hidden;
+  writeDb(db);
+  return enrichItem(item);
+}
+
+export function listIjodAdmin({ limit = 500 } = {}) {
+  const items = [...(readDb().items || [])];
+  items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  return items.slice(0, limit).map((i) => enrichItem(i));
+}
+
+export function getIjodCountByUserId() {
+  const map = {};
+  for (const item of readDb().items || []) {
+    const uid = item.user_id;
+    map[uid] = (map[uid] || 0) + 1;
+  }
+  return map;
+}
+
+export function getIjodById(id, userId = null) {
+  const item = readDb().items.find((i) => i.id === id) || null;
+  return item ? enrichItem(item, userId) : null;
+}
+
+export function rateIjod(id, userId, rating) {
+  const db = readDb();
+  const idx = db.items.findIndex((i) => i.id === id);
+  if (idx < 0) return { error: "not_found" };
+  const item = db.items[idx];
+  if (+item.user_id === +userId) return { error: "own_item" };
+  if (!item.ratings) item.ratings = {};
+  item.ratings[String(userId)] = rating;
+  writeDb(db);
+  return { item: enrichItem(item, userId) };
+}

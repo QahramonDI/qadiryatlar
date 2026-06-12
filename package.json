@@ -1,0 +1,10 @@
+{
+  "name": "qadriyatlar-kaledaskopi",
+  "private": true,
+  "scripts": {
+    "start": "npm install --prefix server && npm start --prefix server",
+    "server": "npm start --prefix server",
+    "local": "powershell -ExecutionPolicy Bypass -File start-local.ps1",
+    "tunnel": "powershell -ExecutionPolicy Bypass -File start-tunnel.ps1"
+  }
+}

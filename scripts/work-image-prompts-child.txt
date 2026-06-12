@@ -1,0 +1,57 @@
+# Bolalar darsligi illustratsiyasi — stylized cartoon, REALISTIC EMAS
+# Global uslub (har prompt boshiga):
+# Whimsical Uzbek children's picture book for ages 8-10. Cute stylized cartoon characters ONLY: round faces, big sparkling eyes, soft cheeks, childlike proportions. Flat gouache watercolor storybook art. Bright saturated colors, warm golden sun, full bleed NO border NO frame NO text. Uzbek qadriyat: duppi, atlas, chapan, mahalla. NOT photorealistic NOT realistic adults NOT photography NOT 3D NOT Disney NOT Pixar NOT anime.
+
+SKIP (qayta generatsiya qilinmaydi — fayl nomi yangilangan):
+- karim-polvon.png
+- keksalarni-hurmat-qil.png (eski: mehribon-qiz.png)
+- ona-qarzi.png
+- kitob-kuch.png (eski: kitob-dosti.png)
+- yurt-madhi.png (eski: vatan-yoshlari.png)
+
+GENERATE:
+
+1. vatan-madhi-dillarda.png | Vatan madhi dillarda
+Cute cartoon Uzbek schoolchildren age 9 in bright classroom singing, hearts and small flags floating, sunny window with green garden and blue dome silhouette. Joyful vatanparvarlik childhood mood.
+
+2. chin-dost.png | Chin do'st
+Three adorable cartoon cars with friendly faces under big pomegranate tree on sunny Uzbek village road. Smallest car helps others. Friendship and humility. No humans.
+
+3. mehnat-qurollari-nima-deydi.png | Mehnat qurollari nima deydi?
+Cheerful cartoon hammer, saw, pliers with smiley faces on sunny wooden workbench in cozy usta workshop. Mehnat qadriyati. Tools as cute characters, no realistic people.
+
+4. dostlik-yolagi.png | Do'stlik yo'lagi
+Two cute stylized cartoon neighbor boys (not adults) in colorful chapans clearing snow path in sunny Uzbek mahalla winter. Friendship and generosity. Childlike cartoon style only.
+
+5. tabiat-zanjirl.png | Tabiat zanjiri
+Cute cartoon children age 8-9 cleaning sparkling blue mountain stream in green Uzbek valley, picking litter into bags. Sunny sky, nature care qadriyati. No realistic faces.
+
+6. orolim.png | Orolim
+Cute cartoon boy holding hands with gentle stylized cartoon grandpa (round face, not realistic) at golden Aral Sea shore, blue sky, hopeful environmental love for homeland.
+
+7. abu-rayhon-beruniy.png | Abu Rayhon Beruniy
+Two cute cartoon boys age 9-10 in traditional dress looking at stars with small astrolabe, starry blue sky over stylized Khorezm minaret silhouette. Science wonder, childlike faces only.
+
+8. bogbon-va-nihol.png | Bog'bon va nihol
+Sunny pomegranate garden. Cute cartoon gardener uncle (stylized round face) beside two sapling trees — one neat with fruit, one wild. Tarbiya metaphor. Storybook style.
+
+9. merosga-kim-munosib.png | Merosga kim munosib?
+Cute cartoon father and five small cartoon sons in sunny ancient Uzbek town, golden purse on ground, youngest son kind and honest. Halollik tale. All stylized childlike proportions for sons.
+
+10. bir-butun-oy-on-ikki-yulduz.png | Bir butun oy, o'n ikki yulduz
+Cute cartoon boy Tohir age 9 walking sunny village path carrying food bundle to hill, honest cheerful mood, golden fields blue sky.
+
+11. mehr-urgi.png | Mehr urug'i
+Colorful sunny Uzbek bazaar. Cute stylized cartoon shopkeeper showing three glowing golden seeds in box to friendly cartoon merchant. Rivoyat tale, bright Navruz colors.
+
+12. kitobni-dost-bilganlar.png | Kitobni do'st bilganlar
+Cute cartoon Uzbek boy age 9 hugging open book like best friend, bright green fields and mountains behind, mother tongue and vatanparvarlik joy.
+
+13. yagonadir-vataning-sening.png | Yagonadir Vataning sening!
+Single beautiful stylized tree with deep golden roots in native soil, Uzbek steppe mountains, bright blue sky, symbolic patriotic childhood illustration, no people.
+
+14. sohibqiron-bobom-mening.png | Sohibqiron bobom mening
+Cute cartoon schoolboy with duppi looking up inspired at stylized heroic Amir Temur on white horse — both as colorful flat storybook figures NOT realistic, Registon tiles background sunny Samarkand.
+
+15. vatan-jon-fidolikdir.png | Vatan — jon fidolikdir
+Cute cartoon boy age 9 kneeling at threshold of traditional Uzbek home touching native golden soil, peaceful prosperous village behind, sunny morning vatanparvarlik childhood scene.
