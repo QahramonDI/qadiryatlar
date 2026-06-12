@@ -1,0 +1,16 @@
+services:
+  qadriyatlar:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+    volumes:
+      # Ma'lumotlar va admin rasmlari shu yerda saqlanadi (deploydan keyin ham qoladi)
+      - qadriyatlar-data:/app/server/data
+    restart: unless-stopped
+
+volumes:
+  qadriyatlar-data:

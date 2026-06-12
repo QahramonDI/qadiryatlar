@@ -1,9 +1,10 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { saveMedia, deleteMediaByUrl, DATA_DIR } from "./media-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_FILE = path.join(__dirname, "data", "custom-works.json");
+const DATA_FILE = path.join(DATA_DIR, "custom-works.json");
 export const WORKS_UPLOAD_DIR = path.join(__dirname, "uploads", "works");
 fs.mkdirSync(WORKS_UPLOAD_DIR, { recursive: true });
 
@@ -216,15 +217,7 @@ function normalizeWork(payload, existing = null) {
 }
 
 export function saveWorkImage(workId, imageBase64) {
-  const match = String(imageBase64 || "").match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i);
-  if (!match) throw new Error("INVALID_IMAGE");
-  const ext = match[1].toLowerCase() === "jpeg" ? "jpg" : match[1].toLowerCase();
-  const buf = Buffer.from(match[2], "base64");
-  if (buf.length > 5 * 1024 * 1024) throw new Error("IMAGE_TOO_LARGE");
-  const safeId = String(workId).replace(/[^a-zA-Z0-9_-]/g, "");
-  const filename = `${safeId}.${ext}`;
-  fs.writeFileSync(path.join(WORKS_UPLOAD_DIR, filename), buf);
-  return `/uploads/works/${filename}`;
+  return saveMedia("works", workId, imageBase64, 5 * 1024 * 1024);
 }
 
 export function getCatalogPublic() {
@@ -339,13 +332,7 @@ export function deleteCustomWork(id) {
 }
 
 function removeWorkImage(imageUrl) {
-  if (!imageUrl?.startsWith("/uploads/works/")) return;
-  try {
-    const fp = path.join(WORKS_UPLOAD_DIR, path.basename(imageUrl));
-    if (fs.existsSync(fp)) fs.unlinkSync(fp);
-  } catch {
-    /* ignore */
-  }
+  deleteMediaByUrl(imageUrl);
 }
 
 export function restoreTextbookWork(id) {

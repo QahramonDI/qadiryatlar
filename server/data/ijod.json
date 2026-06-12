@@ -11,7 +11,7 @@
       "title": "Mehnatsevarlik",
       "description": "Biz tabiatni asraymiz va ardoqlaymiz",
       "value_id": "mehnatsevarlik",
-      "image_url": "/uploads/ijod/5_1781170674144.jpg"
+      "image_url": "/api/media/ijod/5_1781170674144.jpg"
     },
     {
       "id": "1781169478586-i2weyg",
@@ -24,7 +24,7 @@
       "title": "Mening ijodim",
       "description": "Men oʻz qishlogʻimni juda yaxshi koʻraman",
       "value_id": "vatanparvarlik",
-      "image_url": "/uploads/ijod/2_1781169478586.jpg"
+      "image_url": "/api/media/ijod/2_1781169478586.jpg"
     },
     {
       "id": "1781128685701-n254h4",
@@ -37,7 +37,7 @@
       "title": "gul",
       "description": "",
       "value_id": "mehnatsevarlik",
-      "image_url": "/uploads/ijod/2_1781128685700.jpg"
+      "image_url": "/api/media/ijod/2_1781128685700.jpg"
     },
     {
       "id": "1781122726518-l3b5uu",
@@ -50,7 +50,7 @@
       "title": "Quyosh",
       "description": "",
       "value_id": "mehribonlik",
-      "image_url": "/uploads/ijod/3_1781122726517.jpg"
+      "image_url": "/api/media/ijod/3_1781122726517.jpg"
     },
     {
       "id": "1781122689363-4hyf84",
@@ -65,7 +65,7 @@
       "title": "Uy",
       "description": "",
       "value_id": "vatanparvarlik",
-      "image_url": "/uploads/ijod/3_1781122689363.jpg"
+      "image_url": "/api/media/ijod/3_1781122689363.jpg"
     },
     {
       "id": "1781122640007-a7j1qx",
@@ -80,7 +80,7 @@
       "title": "Gul",
       "description": "",
       "value_id": "mehribonlik",
-      "image_url": "/uploads/ijod/3_1781122640007.jpg"
+      "image_url": "/api/media/ijod/3_1781122640007.jpg"
     },
     {
       "id": "1781121305290-816qha",
@@ -92,7 +92,7 @@
       "title": "Mushukcham",
       "description": "",
       "value_id": "mehribonlik",
-      "image_url": "/uploads/ijod/1_1781121305289.jpg",
+      "image_url": "/api/media/ijod/1_1781121305289.jpg",
       "ratings": {
         "2": 5,
         "3": 5
@@ -108,7 +108,7 @@
       "title": "Bolakay",
       "description": "",
       "value_id": "mehribonlik",
-      "image_url": "/uploads/ijod/3_1781120678216.jpg",
+      "image_url": "/api/media/ijod/3_1781120678216.jpg",
       "ratings": {
         "1": 5,
         "2": 5
@@ -124,7 +124,7 @@
       "title": "Ona",
       "description": "",
       "value_id": "ota-onaga-hurmat",
-      "image_url": "/uploads/ijod/2_1781120583964.jpg",
+      "image_url": "/api/media/ijod/2_1781120583964.jpg",
       "ratings": {
         "1": 5,
         "3": 3

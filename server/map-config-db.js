@@ -1,9 +1,10 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { saveMedia, deleteMediaByUrl, DATA_DIR } from "./media-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_FILE = path.join(__dirname, "data", "map-config.json");
+const DATA_FILE = path.join(DATA_DIR, "map-config.json");
 export const MAP_UPLOAD_DIR = path.join(__dirname, "uploads", "map");
 fs.mkdirSync(MAP_UPLOAD_DIR, { recursive: true });
 
@@ -83,27 +84,14 @@ export function saveMapInfographic(regionId, imageBase64) {
   const id = String(regionId || "").trim();
   if (!REGION_IDS.includes(id)) throw new Error("INVALID_REGION");
 
-  const match = String(imageBase64 || "").match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i);
-  if (!match) throw new Error("INVALID_IMAGE");
-  const ext = match[1].toLowerCase() === "jpeg" ? "jpg" : match[1].toLowerCase();
-  const buf = Buffer.from(match[2], "base64");
-  if (buf.length > 6 * 1024 * 1024) throw new Error("IMAGE_TOO_LARGE");
-
   const db = readDb();
   const prev = db.regions[id]?.infographicUrl;
-  const filename = `${id}.${ext}`;
-  fs.writeFileSync(path.join(MAP_UPLOAD_DIR, filename), buf);
-  const url = `/uploads/map/${filename}`;
+  const url = saveMedia("map", id, imageBase64, 6 * 1024 * 1024);
 
   db.regions[id] = { ...(db.regions[id] || {}), infographicUrl: url };
   writeDb({ regions: db.regions, backgroundUrl: db.backgroundUrl });
 
-  if (prev?.startsWith("/uploads/map/") && prev !== url) {
-    try {
-      const fp = path.join(MAP_UPLOAD_DIR, path.basename(prev));
-      if (fs.existsSync(fp)) fs.unlinkSync(fp);
-    } catch { /* ignore */ }
-  }
+  if (prev && prev !== url) deleteMediaByUrl(prev);
 
   return { url, config: readDb() };
 }
@@ -118,33 +106,17 @@ export function removeMapInfographic(regionId) {
     if (!Object.keys(db.regions[id]).length) delete db.regions[id];
   }
   writeDb({ regions: db.regions, backgroundUrl: db.backgroundUrl });
-  if (prev?.startsWith("/uploads/map/")) {
-    try {
-      const fp = path.join(MAP_UPLOAD_DIR, path.basename(prev));
-      if (fs.existsSync(fp)) fs.unlinkSync(fp);
-    } catch { /* ignore */ }
-  }
+  if (prev) deleteMediaByUrl(prev);
   return readDb();
 }
 
 function saveMapImageFile(filename, imageBase64, maxBytes = 6 * 1024 * 1024) {
-  const match = String(imageBase64 || "").match(/^data:image\/(jpeg|jpg|png|webp|svg\+xml);base64,(.+)$/i);
-  if (!match) throw new Error("INVALID_IMAGE");
-  let ext = match[1].toLowerCase();
-  if (ext === "jpeg") ext = "jpg";
-  if (ext === "svg+xml") ext = "svg";
-  const buf = Buffer.from(match[2], "base64");
-  if (buf.length > maxBytes) throw new Error("IMAGE_TOO_LARGE");
-  fs.writeFileSync(path.join(MAP_UPLOAD_DIR, filename), buf);
-  return `/uploads/map/${filename}`;
+  const base = path.basename(filename, path.extname(filename));
+  return saveMedia("map", base, imageBase64, maxBytes);
 }
 
 function removeMapUploadFile(url) {
-  if (!url?.startsWith("/uploads/map/")) return;
-  try {
-    const fp = path.join(MAP_UPLOAD_DIR, path.basename(url));
-    if (fs.existsSync(fp)) fs.unlinkSync(fp);
-  } catch { /* ignore */ }
+  deleteMediaByUrl(url);
 }
 
 export function saveMapBackground(imageBase64) {
