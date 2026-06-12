@@ -632,7 +632,6 @@ function switchPage(name, skipTeacherGuard = false) {
   }
   if (!PAGES.includes(name)) name = "bosh";
   $$(".page").forEach((p) => {
-    resetRevealState(p);
     p.hidden = true;
   });
   const page = $("#page-" + name);
@@ -1467,10 +1466,10 @@ function setLibrarySortMode(mode) {
     libraryRandomOrderSource = "";
   }
   updateLibrarySortUi();
-  renderLibrary();
+  renderLibrary({ stagger: true });
 }
 
-function renderLibrary() {
+function renderLibrary(options = {}) {
   const sub = $("#librarySubtitle");
   if (sub) sub.textContent = `3–4-sinf darsliklaridagi ${TEXTBOOK_WORKS.length} ta badiiy asar — o'qing, o'ynang, o'rganing.`;
   const q = ($("#searchInput").value || "").toLowerCase().trim();
@@ -1492,7 +1491,9 @@ function renderLibrary() {
   const sorted = sortLibraryWorks(list);
 
   $("#worksEmpty").hidden = sorted.length > 0;
-  $("#worksGrid").innerHTML = sorted.map((w) => {
+  const grid = $("#worksGrid");
+  if (options.stagger && grid) grid.classList.add("is-stagger-pending");
+  grid.innerHTML = sorted.map((w) => {
     const v = getValueById(w.valueMain);
     const done = Store.data.readWorks.includes(w.id);
     return `<div class="work-card" data-work="${w.id}">
@@ -1512,6 +1513,10 @@ function renderLibrary() {
     </div>`;
   }).join("");
   $$("#worksGrid .work-card").forEach((el) => el.addEventListener("click", () => openWorkModal(el.dataset.work)));
+  if (!$("#page-kutubxona")?.hidden && options.stagger) {
+    revealItemsStagger($$("#worksGrid .work-card"));
+    grid?.classList.remove("is-stagger-pending");
+  }
 }
 
 function openWorkModal(workId) {
@@ -6313,6 +6318,7 @@ function paintIjodGrid(items, options = {}) {
   }
 
   if (empty) empty.hidden = true;
+  if (options.stagger) grid.classList.add("ijod-grid-stagger");
   grid.innerHTML = items.map(renderIjodCard).join("");
   updateIjodCountText(countEl, items, options.slice || { total: items.length });
   bindIjodStarWidgets(grid);
@@ -6344,8 +6350,8 @@ function repaintIjodFromCache(options = {}) {
   paintIjodGrid(slice.items, { ...options, slice });
 }
 
-const IJOD_CARD_STAGGER_STEP = 70;
-const IJOD_CARD_STAGGER_MAX = 1800;
+const IJOD_CARD_STAGGER_STEP = 45;
+const IJOD_CARD_STAGGER_MAX = 1100;
 
 function prepareIjodCardsStagger(grid) {
   if (!grid) return;
@@ -6362,30 +6368,33 @@ function prepareIjodCardsStagger(grid) {
 function scheduleIjodPageIntro(pageEl) {
   if (!pageEl) return;
   clearTimeout(revealTimer);
-  revealTimer = setTimeout(() => {
-    animateSiteIn(pageEl);
+  if (revealRaf) cancelAnimationFrame(revealRaf);
+  revealRaf = requestAnimationFrame(() => {
+    revealRaf = requestAnimationFrame(() => {
+      animateSiteIn(pageEl);
 
-    const grid = $("#ijodGrid");
-    if (!grid || !grid.classList.contains("ijod-grid-stagger")) return;
+      const grid = $("#ijodGrid");
+      if (!grid || !grid.classList.contains("ijod-grid-stagger")) return;
 
-    if (typeof motionReduced === "function" && motionReduced()) {
-      animateIjodCardsStagger(grid);
-      return;
-    }
+      if (typeof motionReduced === "function" && motionReduced()) {
+        animateIjodCardsStagger(grid);
+        return;
+      }
 
-    const toolbar = pageEl.querySelector(".ijod-toolbar");
-    let waitMs = 860;
-    if (toolbar) {
-      const delayRaw = toolbar.style.getPropertyValue("--reveal-delay") || "0ms";
-      const delayMs = parseFloat(delayRaw) || 0;
-      waitMs = delayMs + 860;
-    }
+      const toolbar = pageEl.querySelector(".ijod-toolbar");
+      let waitMs = 560;
+      if (toolbar) {
+        const delayRaw = toolbar.style.getPropertyValue("--reveal-delay") || "0ms";
+        const delayMs = parseFloat(delayRaw) || 0;
+        waitMs = delayMs + 560;
+      }
 
-    clearTimeout(pageEl._ijodGridStaggerDelay);
-    pageEl._ijodGridStaggerDelay = setTimeout(() => {
-      animateIjodCardsStagger(grid);
-    }, waitMs);
-  }, 60);
+      clearTimeout(pageEl._ijodGridStaggerDelay);
+      pageEl._ijodGridStaggerDelay = setTimeout(() => {
+        animateIjodCardsStagger(grid);
+      }, waitMs);
+    });
+  });
 }
 
 function animateIjodCardsStagger(grid) {
@@ -6423,7 +6432,7 @@ function animateIjodCardsStagger(grid) {
   grid._ijodStaggerTimer = setTimeout(() => {
     grid.classList.remove("ijod-grid-stagger");
     cards.forEach((el) => el.style.removeProperty("--ijod-card-delay"));
-  }, lastDelay + 540);
+  }, lastDelay + 380);
 }
 
 function setIjodSort(mode) {
@@ -6550,8 +6559,29 @@ function userAsk(text) {
 }
 
 /* ====================== SCROLL REVEAL / SAHIFA ANIMATSIYASI ====================== */
-const REVEAL_STEP = 70;
-const REVEAL_MAX_DELAY = 1600;
+const REVEAL_STEP = 45;
+const REVEAL_MAX_DELAY = 900;
+
+function revealItemsStagger(items, { kind = "reveal" } = {}) {
+  if (!items?.length) return;
+  const reduced = motionReduced();
+  items.forEach((el, i) => {
+    el.classList.remove("in");
+    el.classList.add(kind === "fade" ? "reveal-fade" : "reveal");
+    const delay = reduced ? 0 : Math.min(i * REVEAL_STEP, REVEAL_MAX_DELAY);
+    el.style.setProperty("--reveal-delay", `${delay}ms`);
+  });
+  if (reduced) {
+    items.forEach((el) => el.classList.add("in"));
+    return;
+  }
+  void items[0]?.offsetHeight;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      items.forEach((el) => el.classList.add("in"));
+    });
+  });
+}
 
 function motionReduced() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -6642,7 +6672,7 @@ function collectAllRevealTargets(pageEl) {
 function resetRevealState(container) {
   if (!container) return;
   container.querySelectorAll(".reveal, .reveal-fade").forEach((el) => {
-    el.classList.remove("in", "reveal", "reveal-fade");
+    el.classList.remove("in");
     el.style.removeProperty("--reveal-delay");
   });
 }
@@ -6675,32 +6705,41 @@ function runRevealSequence(targets) {
 
   void document.body.offsetHeight;
   requestAnimationFrame(() => {
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       targets.forEach((el) => el.classList.add("in"));
-    }, 40);
+    });
   });
 }
 
 let revealTimer = null;
-function animateSiteIn(pageEl) {
+let revealRaf = null;
+function animateSiteIn(pageEl, { includeChrome = false } = {}) {
   if (!pageEl || pageEl.hidden) return;
-  resetRevealState(document.querySelector(".topbar"));
-  resetRevealState(document.querySelector(".site-footer"));
   resetRevealState(pageEl);
-  const targets = collectAllRevealTargets(pageEl);
+  if (includeChrome) {
+    resetRevealState(document.querySelector(".topbar"));
+    resetRevealState(document.querySelector(".site-footer"));
+  }
+  const targets = includeChrome
+    ? collectAllRevealTargets(pageEl)
+    : collectPageTargets(pageEl);
   runRevealSequence(targets);
 }
 
-function scheduleSiteReveal(pageEl) {
+function scheduleSiteReveal(pageEl, { includeChrome = false } = {}) {
   if (!pageEl) return;
   clearTimeout(revealTimer);
-  const ms = pageEl.id === "page-bosh" ? 120 : 60;
-  revealTimer = setTimeout(() => animateSiteIn(pageEl), ms);
+  if (revealRaf) cancelAnimationFrame(revealRaf);
+  revealRaf = requestAnimationFrame(() => {
+    revealRaf = requestAnimationFrame(() => {
+      animateSiteIn(pageEl, { includeChrome });
+    });
+  });
 }
 
 function observeReveals() {
   const page = document.querySelector(".page:not([hidden])") || $("#page-bosh");
-  scheduleSiteReveal(page);
+  scheduleSiteReveal(page, { includeChrome: true });
 }
 
 /* ====================== DOWNLOAD MARKAZI ====================== */
@@ -6867,7 +6906,7 @@ function bindGlobalEvents() {
   // Filtrlar
   ["searchInput", "gradeFilter", "valueFilter", "genreFilter"].forEach((id) => {
     const el = $("#" + id);
-    if (el) el.addEventListener(id === "searchInput" ? "input" : "change", renderLibrary);
+    if (el) el.addEventListener(id === "searchInput" ? "input" : "change", () => renderLibrary({ stagger: true }));
   });
   $("#librarySortNewest")?.addEventListener("click", () => setLibrarySortMode("newest"));
   $("#librarySortPopular")?.addEventListener("click", () => setLibrarySortMode("popular"));

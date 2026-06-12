@@ -2943,11 +2943,11 @@ img { max-width: 100%; display: block; }
 }
 .ijod-masonry.ijod-grid-stagger .ijod-card {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(14px);
   pointer-events: none;
   transition:
-    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.25s ease;
   transition-delay: var(--ijod-card-delay, 0ms);
 }
@@ -3992,7 +3992,7 @@ body.locked { overflow: hidden; }
 /* --------------------------- REVEAL --------------------------- */
 .reveal {
   opacity: 0;
-  transform: translateY(22px);
+  transform: translateY(16px);
   will-change: opacity, transform;
 }
 .reveal-fade {
@@ -4005,15 +4005,15 @@ body.locked { overflow: hidden; }
   transform: none;
 }
 .reveal.in {
-  animation: revealUp 0.78s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: revealUp 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: var(--reveal-delay, 0ms);
 }
 .reveal-fade.in {
-  animation: revealFade 0.88s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: revealFade 0.56s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   animation-delay: var(--reveal-delay, 0ms);
 }
 @keyframes revealUp {
-  from { opacity: 0; transform: translateY(22px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes revealFade {
@@ -4023,6 +4023,10 @@ body.locked { overflow: hidden; }
 .topbar .reveal,
 .topbar .reveal-fade {
   backface-visibility: hidden;
+}
+#worksGrid.is-stagger-pending .work-card {
+  opacity: 0;
+  transform: translateY(16px);
 }
 @keyframes fadePage { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
