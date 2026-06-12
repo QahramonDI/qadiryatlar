@@ -489,6 +489,10 @@ function fileToIjodImage(file, cb) {
     toast("Iltimos, rasm fayl tanlang.", "err");
     return;
   }
+  if (file.size > 5 * 1024 * 1024) {
+    toast("Rasm 5 MB dan kichik bo'lsin.", "err");
+    return;
+  }
   const reader = new FileReader();
   reader.onerror = () => toast("Rasm faylini o'qib bo'lmadi.", "err");
   reader.onload = (e) => {
@@ -513,7 +517,7 @@ function fileToIjodImage(file, cb) {
         ctx.drawImage(img, 0, 0, w, h);
         cb(canvas.toDataURL("image/jpeg", 0.82));
       } catch {
-        if (typeof raw === "string" && raw.length < 2_800_000) cb(raw);
+        if (typeof raw === "string" && raw.length < 7_000_000) cb(raw);
         else toast("Rasmni qayta ishlashda xatolik. Boshqa rasm tanlang.", "err");
       }
     };
@@ -6110,7 +6114,7 @@ function openIjodUploadModal() {
         <div class="ijod-dropzone-inner" id="ijodDropPreview">
           <i class="fa-solid fa-cloud-arrow-up"></i>
           <b>Rasmni tanlang yoki bu yerga tashlang</b>
-          <small>JPEG, PNG · max ~3MB</small>
+          <small>JPEG, PNG · max ~5MB</small>
         </div>
       </label>
       <label class="ijod-field-label">Sarlavha</label>

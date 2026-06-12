@@ -220,7 +220,7 @@ export function saveWorkImage(workId, imageBase64) {
   if (!match) throw new Error("INVALID_IMAGE");
   const ext = match[1].toLowerCase() === "jpeg" ? "jpg" : match[1].toLowerCase();
   const buf = Buffer.from(match[2], "base64");
-  if (buf.length > 3 * 1024 * 1024) throw new Error("IMAGE_TOO_LARGE");
+  if (buf.length > 5 * 1024 * 1024) throw new Error("IMAGE_TOO_LARGE");
   const safeId = String(workId).replace(/[^a-zA-Z0-9_-]/g, "");
   const filename = `${safeId}.${ext}`;
   fs.writeFileSync(path.join(WORKS_UPLOAD_DIR, filename), buf);

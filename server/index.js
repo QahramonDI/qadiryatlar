@@ -626,7 +626,7 @@ app.put("/api/teacher/works/:id", teacherAuthMiddleware, (req, res) => {
     res.json({ ok: true, ...result });
   } catch (e) {
     if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Rasm formati noto'g'ri." });
-    if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm 3 MB dan kichik bo'lsin." });
+    if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm 5 MB dan kichik bo'lsin." });
     console.error(e);
     res.status(500).json({ error: "Asarni saqlashda xatolik" });
   }
@@ -639,7 +639,7 @@ app.post("/api/teacher/works", teacherAuthMiddleware, (req, res) => {
   } catch (e) {
     if (e.message === "WORK_EXISTS") return res.status(409).json({ error: "Bu ID band" });
     if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Rasm formati noto'g'ri." });
-    if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm 3 MB dan kichik bo'lsin." });
+    if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm 5 MB dan kichik bo'lsin." });
     console.error(e);
     res.status(500).json({ error: "Asar qo'shishda xatolik" });
   }
@@ -865,7 +865,7 @@ app.post("/api/ijod", authMiddleware, (req, res) => {
 
     const ext = match[1].toLowerCase() === "jpeg" ? "jpg" : match[1].toLowerCase();
     const buf = Buffer.from(match[2], "base64");
-    if (buf.length > 3_500_000) return res.status(400).json({ error: "Rasm hajmi juda katta (max ~3MB)" });
+    if (buf.length > 5 * 1024 * 1024) return res.status(400).json({ error: "Rasm hajmi juda katta (max ~5MB)" });
 
     const filename = `${user.id}_${Date.now()}.${ext}`;
     fs.writeFileSync(path.join(IJOD_UPLOAD_DIR, filename), buf);
