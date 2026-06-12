@@ -25,6 +25,23 @@ export function parseImageBase64(imageBase64, maxBytes = 6 * 1024 * 1024) {
   return { buf, ext };
 }
 
+function toDataUrl(buf, ext) {
+  const mime = ext === "jpg" ? "jpeg" : ext === "svg" ? "svg+xml" : ext;
+  return `data:image/${mime};base64,${buf.toString("base64")}`;
+}
+
+function filePathToDataUrl(category, filename) {
+  const fp = resolveMediaFilePath(category, filename);
+  if (!fp) return null;
+  try {
+    const buf = fs.readFileSync(fp);
+    const ext = path.extname(filename).slice(1).toLowerCase() || "png";
+    return toDataUrl(buf, ext === "jpeg" ? "jpg" : ext);
+  } catch {
+    return null;
+  }
+}
+
 export function saveMedia(category, basename, imageBase64, maxBytes = 6 * 1024 * 1024) {
   const { buf, ext } = parseImageBase64(imageBase64, maxBytes);
   const safeBase = String(basename).replace(/[^a-zA-Z0-9_-]/g, "") || "image";
@@ -32,11 +49,13 @@ export function saveMedia(category, basename, imageBase64, maxBytes = 6 * 1024 *
   const dir = path.join(MEDIA_ROOT, category);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, filename), buf);
+  // Asar rasmlari to'g'ridan-to'g'ri JSON ga (deployda yo'qolmaydi)
+  if (category === "works") return toDataUrl(buf, ext);
   return `/api/media/${category}/${filename}`;
 }
 
 export function deleteMediaByUrl(url) {
-  if (!url) return;
+  if (!url || url.startsWith("data:image/")) return;
   if (url.startsWith("/api/media/")) {
     const rel = url.slice("/api/media/".length);
     const fp = path.join(MEDIA_ROOT, rel);
@@ -78,6 +97,15 @@ function copyLegacyFileToMedia(category, filename) {
   return `/api/media/${category}/${filename}`;
 }
 
+function migrateApiMediaUrl(url) {
+  if (!url?.startsWith("/api/media/")) return url;
+  const parts = url.slice("/api/media/".length).split("/").filter(Boolean);
+  if (parts.length !== 2) return url;
+  const [category, filename] = parts;
+  if (category !== "works") return url;
+  return filePathToDataUrl(category, filename) || url;
+}
+
 function migrateUploadUrl(url) {
   if (!url?.startsWith("/uploads/")) return url;
   const parts = url.slice("/uploads/".length).split("/").filter(Boolean);
@@ -115,12 +143,24 @@ export function migrateLegacyUploads() {
           work.imageUrl = next;
           worksChanged = true;
         }
+      } else if (work.imageUrl?.startsWith("/api/media/works/")) {
+        const next = migrateApiMediaUrl(work.imageUrl);
+        if (next !== work.imageUrl) {
+          work.imageUrl = next;
+          worksChanged = true;
+        }
       }
     }
     for (const id of Object.keys(worksDb.overrides || {})) {
       const patch = worksDb.overrides[id];
       if (patch?.imageUrl?.startsWith("/uploads/")) {
         const next = migrateUploadUrl(patch.imageUrl);
+        if (next !== patch.imageUrl) {
+          patch.imageUrl = next;
+          worksChanged = true;
+        }
+      } else if (patch?.imageUrl?.startsWith("/api/media/works/")) {
+        const next = migrateApiMediaUrl(patch.imageUrl);
         if (next !== patch.imageUrl) {
           patch.imageUrl = next;
           worksChanged = true;
