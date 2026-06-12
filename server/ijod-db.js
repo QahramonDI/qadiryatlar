@@ -1,9 +1,10 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { DATA_DIR } from "./media-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_FILE = path.join(__dirname, "data", "ijod.json");
+const DATA_FILE = path.join(DATA_DIR, "ijod.json");
 
 function ensureFile() {
   const dir = path.dirname(DATA_FILE);

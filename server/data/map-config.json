@@ -5,7 +5,7 @@
       "mapY": 36.6,
       "workId": "dustlik-kemasi",
       "value": "dustlik",
-      "infographicUrl": "/uploads/map/qoraqalpogiston.png",
+      "infographicUrl": "/api/media/map/qoraqalpogiston.png",
       "story": "Qoraqalpog'iston — Orol dengizi bo'yi, kashtachilik va do'stlik yurti. Bu yerda odamlar qo'shnilar bilan birga ishlaydi, kemada ham, hayotda ham qo'l beradi.",
       "tale": "Do'stlik yo'lagi hikoyasida qo'shnilar bir-biriga yo'l ochib, saxovat ko'rsatadi.",
       "tradition": "Baliq ovi, kashtachilik va do'stlik dasturxonlari",
@@ -126,12 +126,12 @@
       "mapY": 65.5,
       "workId": "marvarid",
       "value": "saxovat",
-      "infographicUrl": "/uploads/map/fargona.webp",
+      "infographicUrl": "/api/media/map/fargona.webp",
       "story": "Farg'ona vodiysi — atlas, gullar va mehmondo'stlik diyori. Bu yer odamlari hosil va mehrni baham ko'radi.",
       "tale": "Yagonadir Vataning sening! matnida Vatan yagona va muqaddas ekanligi tasvirlanadi.",
       "tradition": "Atlas to'qimachilik, anor va do'stlik dasturxoni",
       "fact": "Farg'ona vodiysi O'zbekistonning eng serhosil mintaqasi."
     }
   },
-  "backgroundUrl": "/uploads/map/background.png"
+  "backgroundUrl": "/api/media/map/background.png"
 }

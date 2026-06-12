@@ -56,6 +56,14 @@ import {
   deleteValue,
   restoreTextbookValue,
 } from "./values-db.js";
+import {
+  resolveMediaFilePath,
+  migrateLegacyUploads,
+  saveMedia,
+  deleteMediaByUrl,
+  MEDIA_ROOT,
+  LEGACY_UPLOADS_ROOT,
+} from "./media-store.js";
 
 ensureBootstrapAdmin();
 
@@ -83,6 +91,7 @@ const IJOD_UPLOAD_DIR = path.join(__dirname, "uploads", "ijod");
 const WORKS_UPLOAD_DIR = path.join(__dirname, "uploads", "works");
 fs.mkdirSync(IJOD_UPLOAD_DIR, { recursive: true });
 fs.mkdirSync(WORKS_UPLOAD_DIR, { recursive: true });
+migrateLegacyUploads();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "qk-dev-secret-change-in-production";
 
@@ -505,12 +514,7 @@ app.put("/api/teacher/ijod/:id", teacherAuthMiddleware, (req, res) => {
 app.delete("/api/teacher/ijod/:id", teacherAuthMiddleware, (req, res) => {
   const removed = adminDeleteIjod(req.params.id);
   if (!removed) return res.status(404).json({ error: "Rasm topilmadi" });
-  if (removed.image_url?.startsWith("/uploads/ijod/")) {
-    const safePath = path.join(IJOD_UPLOAD_DIR, path.basename(removed.image_url));
-    try {
-      if (fs.existsSync(safePath)) fs.unlinkSync(safePath);
-    } catch { /* ignore */ }
-  }
+  if (removed.image_url) deleteMediaByUrl(removed.image_url);
   res.json({ ok: true });
 });
 
@@ -860,15 +864,11 @@ app.post("/api/ijod", authMiddleware, (req, res) => {
     if (!VALID_VALUE_IDS.has(valueId)) {
       return res.status(400).json({ error: "Qadriyatni tanlang" });
     }
-    const match = imageBase64.match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i);
-    if (!match) return res.status(400).json({ error: "Rasm yuklang (JPEG yoki PNG)" });
+    if (!/^data:image\/(jpeg|jpg|png|webp);base64,/i.test(imageBase64)) {
+      return res.status(400).json({ error: "Rasm yuklang (JPEG yoki PNG)" });
+    }
 
-    const ext = match[1].toLowerCase() === "jpeg" ? "jpg" : match[1].toLowerCase();
-    const buf = Buffer.from(match[2], "base64");
-    if (buf.length > 5 * 1024 * 1024) return res.status(400).json({ error: "Rasm hajmi juda katta (max ~5MB)" });
-
-    const filename = `${user.id}_${Date.now()}.${ext}`;
-    fs.writeFileSync(path.join(IJOD_UPLOAD_DIR, filename), buf);
+    const imageUrl = saveMedia("ijod", `${user.id}_${Date.now()}`, imageBase64, 5 * 1024 * 1024);
 
     const item = createIjod({
       user_id: user.id,
@@ -878,10 +878,12 @@ app.post("/api/ijod", authMiddleware, (req, res) => {
       title,
       description,
       value_id: valueId,
-      image_url: `/uploads/ijod/${filename}`,
+      image_url: imageUrl,
     });
     res.json(item);
   } catch (e) {
+    if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Rasm yuklang (JPEG yoki PNG)" });
+    if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm hajmi juda katta (max ~5MB)" });
     console.error(e);
     res.status(500).json({ error: "Rasm yuklashda xatolik" });
   }
@@ -892,14 +894,7 @@ app.delete("/api/ijod/:id", authMiddleware, (req, res) => {
   if (!user) return res.status(401).json({ error: "Sessiya eskirgan — qayta kiring" });
   const removed = deleteIjod(req.params.id, user.id);
   if (!removed) return res.status(404).json({ error: "Topilmadi yoki o'chirish huquqi yo'q" });
-  if (removed.image_url?.startsWith("/uploads/ijod/")) {
-    const safePath = path.join(IJOD_UPLOAD_DIR, path.basename(removed.image_url));
-    try {
-      if (fs.existsSync(safePath)) fs.unlinkSync(safePath);
-    } catch {
-      /* ignore */
-    }
-  }
+  if (removed.image_url) deleteMediaByUrl(removed.image_url);
   res.json({ ok: true });
 });
 
@@ -922,9 +917,31 @@ app.put("/api/ijod/:id/rate", authMiddleware, (req, res) => {
   res.json(result.item);
 });
 
+app.get("/api/media/:category/:filename", (req, res) => {
+  const fp = resolveMediaFilePath(req.params.category, req.params.filename);
+  if (!fp) return res.status(404).end();
+  res.setHeader("Cache-Control", "public, max-age=86400, immutable");
+  res.sendFile(fp);
+});
+
 app.use((req, res, next) => {
   if (req.path.startsWith("/api/")) {
     return res.status(404).json({ error: "API topilmadi — serverni qayta ishga tushiring (npm start)" });
+  }
+  next();
+});
+
+/** Eski /uploads/ URL lar uchun: avval uploads, keyin data/media dan qidiradi */
+app.use("/uploads", (req, res, next) => {
+  const legacyPath = path.join(LEGACY_UPLOADS_ROOT, req.path);
+  if (legacyPath.startsWith(LEGACY_UPLOADS_ROOT) && fs.existsSync(legacyPath)) return next();
+  const parts = req.path.split("/").filter(Boolean);
+  if (parts.length >= 2) {
+    const mediaPath = path.join(MEDIA_ROOT, ...parts);
+    if (mediaPath.startsWith(MEDIA_ROOT) && fs.existsSync(mediaPath)) {
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      return res.sendFile(mediaPath);
+    }
   }
   next();
 });
