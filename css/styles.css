@@ -720,6 +720,10 @@ img { max-width: 100%; display: block; }
 .uz-map-progress { margin-top: 12px; font-size: 0.85rem; }
 
 /* Viloyat infografika paneli */
+.uz-region-panel-foot,
+.uz-region-panel-actions {
+  display: none !important;
+}
 .uz-region-panel {
   display: flex;
   flex-direction: column;
