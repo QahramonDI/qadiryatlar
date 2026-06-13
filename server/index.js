@@ -47,6 +47,13 @@ import {
   getIjodCountByUserId,
 } from "./ijod-db.js";
 import { listCustomWorks, createCustomWork, deleteCustomWork, updateWork, getCatalogPublic, findCustomWork, getWorkOverride } from "./works-db.js";
+import {
+  listAudioStories,
+  findAudioStory,
+  createAudioStory,
+  updateAudioStory,
+  deleteAudioStory,
+} from "./audio-stories-db.js";
 import { getAllViewCounts, incrementWorkView } from "./work-views-db.js";
 import { getAllWorkRatingStats, getWorkRatingStats, rateWork } from "./work-ratings-db.js";
 import { parseCrosswordLines, generateCrosswordEntriesFromWork } from "./crossword-gen.js";
@@ -124,6 +131,16 @@ function handleSupabaseError(res, e, fallbackMessage) {
   return res.status(500).json({ error: fallbackMessage });
 }
 
+function handleAudioStoryError(res, e, fallbackMessage) {
+  if (e.message === "INVALID_TITLE") return res.status(400).json({ error: "Sarlavha kiriting." });
+  if (e.message === "AUDIO_REQUIRED") return res.status(400).json({ error: "Audio fayl yuklang." });
+  if (e.message === "INVALID_AUDIO") return res.status(400).json({ error: "Audio fayl formati noto'g'ri." });
+  if (e.message === "AUDIO_TOO_LARGE") return res.status(400).json({ error: "Audio fayl 50 MB dan kichik bo'lsin." });
+  if (e.message === "AUDIO_STORY_EXISTS") return res.status(409).json({ error: "Bu audio hikoya ID band." });
+  if (e.message === "NOT_FOUND") return res.status(404).json({ error: "Audio hikoya topilmadi." });
+  return handleSupabaseError(res, e, fallbackMessage);
+}
+
 async function optimizeAvatarDataUrl(avatarImg) {
   if (!avatarImg) return null;
   if (!String(avatarImg).startsWith("data:image/")) return avatarImg;
@@ -156,7 +173,7 @@ function getLevel(xp) {
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "12mb" }));
+app.use(express.json({ limit: "70mb" }));
 
 function resolveStudentUser(payload) {
   if (!payload) return null;
@@ -683,6 +700,60 @@ app.delete("/api/teacher/values/:id", teacherAuthMiddleware, (req, res) => {
 app.post("/api/teacher/values/:id/restore", teacherAuthMiddleware, (req, res) => {
   restoreTextbookValue(req.params.id);
   res.json({ ok: true });
+});
+
+app.get("/api/audio-stories", async (_req, res) => {
+  try {
+    res.json(await listAudioStories());
+  } catch (e) {
+    handleSupabaseError(res, e, "Audio hikoyalar yuklanmadi");
+  }
+});
+
+app.get("/api/audio-stories/:id", async (req, res) => {
+  try {
+    const story = await findAudioStory(req.params.id);
+    if (!story) return res.status(404).json({ error: "Audio hikoya topilmadi" });
+    res.json(story);
+  } catch (e) {
+    handleSupabaseError(res, e, "Audio hikoya yuklanmadi");
+  }
+});
+
+app.get("/api/teacher/audio-stories", adminAuthMiddleware, async (_req, res) => {
+  try {
+    res.json(await listAudioStories({ includeInactive: true }));
+  } catch (e) {
+    handleSupabaseError(res, e, "Audio hikoyalar yuklanmadi");
+  }
+});
+
+app.post("/api/audio-stories", adminAuthMiddleware, async (req, res) => {
+  try {
+    const story = await createAudioStory(req.body || {});
+    res.json({ ok: true, story });
+  } catch (e) {
+    handleAudioStoryError(res, e, "Audio hikoya yaratishda xatolik");
+  }
+});
+
+app.put("/api/audio-stories/:id", adminAuthMiddleware, async (req, res) => {
+  try {
+    const story = await updateAudioStory(req.params.id, req.body || {});
+    res.json({ ok: true, story });
+  } catch (e) {
+    handleAudioStoryError(res, e, "Audio hikoyani saqlashda xatolik");
+  }
+});
+
+app.delete("/api/audio-stories/:id", adminAuthMiddleware, async (req, res) => {
+  try {
+    const story = await deleteAudioStory(req.params.id);
+    if (!story) return res.status(404).json({ error: "Audio hikoya topilmadi" });
+    res.json({ ok: true });
+  } catch (e) {
+    handleAudioStoryError(res, e, "Audio hikoyani o'chirishda xatolik");
+  }
 });
 
 app.get("/api/teacher/works/:id", teacherAuthMiddleware, async (req, res) => {

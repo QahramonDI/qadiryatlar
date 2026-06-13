@@ -135,13 +135,41 @@ export async function saveOptimizedStorageMediaWithMeta(category, basename, imag
   return { url, sizeBytes: buf.length, ext };
 }
 
+export function parseAudioBase64(audioBase64, maxBytes = 50 * 1024 * 1024) {
+  const match = String(audioBase64 || "").match(/^data:audio\/(mpeg|mp3|mp4|m4a|x-m4a|wav|wave|ogg|webm);base64,(.+)$/i);
+  if (!match) throw new Error("INVALID_AUDIO");
+  let ext = match[1].toLowerCase();
+  if (ext === "mpeg") ext = "mp3";
+  if (ext === "mp4" || ext === "x-m4a") ext = "m4a";
+  if (ext === "wave") ext = "wav";
+  const buf = Buffer.from(match[2], "base64");
+  if (buf.length > maxBytes) throw new Error("AUDIO_TOO_LARGE");
+  return { buf, ext };
+}
+
+export async function saveStorageAudio(category, basename, audioBase64, options = {}) {
+  const { buf, ext } = parseAudioBase64(audioBase64, options.maxBytes);
+  const url = await uploadStorageMediaBuffer(category, basename, buf, ext);
+  return { url, sizeBytes: buf.length, ext };
+}
+
 async function uploadStorageMediaBuffer(category, basename, buf, ext) {
   const safeCategory = String(category).replace(/[^a-zA-Z0-9_-]/g, "") || "media";
   const safeBase = String(basename).replace(/[^a-zA-Z0-9_-]/g, "") || "image";
   const objectPath = `${safeCategory}/${safeBase}.${ext}`;
   const bucket = getSupabaseBucket();
   const supabase = getSupabaseAdmin();
-  const contentType = ext === "webp" ? "image/webp" : "image/jpeg";
+  const contentTypes = {
+    webp: "image/webp",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    mp3: "audio/mpeg",
+    m4a: "audio/mp4",
+    wav: "audio/wav",
+    ogg: "audio/ogg",
+    webm: "audio/webm",
+  };
+  const contentType = contentTypes[ext] || "application/octet-stream";
   const { error } = await supabase.storage
     .from(bucket)
     .upload(objectPath, buf, {

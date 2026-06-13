@@ -12,7 +12,7 @@
      9. Testlar + sertifikat
     10. Yutuqlar / reyting
     11. Ota-onalar paneli + grafiklar
-    12. Audio hikoyalar (nutq sintezi)
+    12. Audio hikoyalar (admin yuklagan audio)
     13. Bilimdon Bobo chatbot
     14. Ishga tushirish
    ===================================================================== */
@@ -3280,6 +3280,9 @@ let adminIjodCache = [];
 let adminCustomWorks = [];
 let adminWorkEditId = null;
 let adminWorkEditImageBase64 = null;
+let adminAudioStories = [];
+let adminAudioEditId = null;
+let adminAudioBase64 = null;
 let adminPasswordsVisible = false;
 let adminStudentEditId = null;
 let adminStudentWarnId = null;
@@ -4758,6 +4761,7 @@ function setAdminTab(tabName) {
   if (tabName === "match") renderAdminMatchPanel();
   if (tabName === "quiz") renderAdminQuizPanel();
   if (tabName === "map") renderAdminMapPanel();
+  if (tabName === "audio") renderAdminAudioStoriesPanel();
 }
 
 function renderAdminStats(stats) {
@@ -4943,13 +4947,177 @@ function renderAdminWorksTable() {
   });
 }
 
-function readImageFileAsBase64(file) {
+function formatAudioDuration(seconds) {
+  const total = Math.max(0, Math.round(Number(seconds) || 0));
+  if (!total) return "";
+  const mins = Math.floor(total / 60);
+  const secs = String(total % 60).padStart(2, "0");
+  return `${mins}:${secs}`;
+}
+
+function adminAudioWorkOptions(selectedId = "") {
+  const opts = [`<option value="">Asarga bog'lanmagan</option>`];
+  TEXTBOOK_WORKS.forEach((w) => {
+    opts.push(`<option value="${esc(w.id)}"${String(w.id) === String(selectedId) ? " selected" : ""}>${esc(w.title)} · ${w.grade}-sinf</option>`);
+  });
+  return opts.join("");
+}
+
+function fillAdminAudioWorkSelect(selectedId = "") {
+  const sel = $("#adminAudioWork");
+  if (!sel) return;
+  sel.innerHTML = adminAudioWorkOptions(selectedId);
+}
+
+function resetAdminAudioForm() {
+  const form = $("#adminAudioForm");
+  if (form) form.reset();
+  adminAudioEditId = null;
+  adminAudioBase64 = null;
+  fillAdminAudioWorkSelect("");
+  const active = $("#adminAudioActive");
+  if (active) active.checked = true;
+  const preview = $("#adminAudioPreview");
+  if (preview) {
+    preview.removeAttribute("src");
+    preview.hidden = true;
+    preview.load();
+  }
+  const file = $("#adminAudioFile");
+  if (file) file.value = "";
+  const submit = $("#adminAudioSubmit");
+  if (submit) submit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Audio hikoyani saqlash`;
+  const cancel = $("#adminAudioCancel");
+  if (cancel) cancel.hidden = true;
+}
+
+function renderAdminAudioStoriesTable() {
+  const table = $("#adminAudioStoriesTable");
+  const empty = $("#adminAudioEmpty");
+  if (!table) return;
+  if (!adminAudioStories.length) {
+    table.innerHTML = "";
+    if (empty) empty.hidden = false;
+    return;
+  }
+  if (empty) empty.hidden = true;
+  table.innerHTML = `<thead><tr><th>#</th><th>Sarlavha</th><th>Asar</th><th>Holat</th><th>Audio</th><th></th></tr></thead><tbody>${
+    adminAudioStories.map((story) => {
+      const w = story.workId ? getWorkById(story.workId) : null;
+      return `<tr data-audio-id="${esc(story.id)}">
+        <td>${story.order || 0}</td>
+        <td><b>${esc(story.title)}</b><br><small class="muted">${esc(story.description || "Tavsif yo'q")}</small></td>
+        <td>${w ? esc(w.title) : "—"}</td>
+        <td><span class="admin-status-pill ${story.isActive ? "is-active" : "is-muted"}">${story.isActive ? "Aktiv" : "Noaktiv"}</span></td>
+        <td><audio class="admin-audio-row-player" controls preload="none" src="${esc(story.audioUrl)}"></audio></td>
+        <td class="admin-actions">
+          <button type="button" class="ghost-btn admin-mini-btn" data-audio-edit="${esc(story.id)}" title="Tahrirlash"><i class="fa-solid fa-pen"></i></button>
+          <button type="button" class="ghost-btn admin-mini-btn admin-danger" data-audio-del="${esc(story.id)}" title="O'chirish"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      </tr>`;
+    }).join("")
+  }</tbody>`;
+  table.querySelectorAll("[data-audio-edit]").forEach((btn) => {
+    btn.addEventListener("click", () => openAdminAudioEditor(btn.dataset.audioEdit));
+  });
+  table.querySelectorAll("[data-audio-del]").forEach((btn) => {
+    btn.addEventListener("click", () => deleteAdminAudioStory(btn.dataset.audioDel));
+  });
+}
+
+async function renderAdminAudioStoriesPanel() {
+  fillAdminAudioWorkSelect($("#adminAudioWork")?.value || "");
+  const table = $("#adminAudioStoriesTable");
+  if (!table) return;
+  try {
+    adminAudioStories = await TeacherApi.fetchAudioStoriesAdmin();
+  } catch {
+    adminAudioStories = [];
+    table.innerHTML = "";
+    const empty = $("#adminAudioEmpty");
+    if (empty) {
+      empty.hidden = false;
+      empty.textContent = "Audio hikoyalarni yuklab bo'lmadi.";
+    }
+    return;
+  }
+  const empty = $("#adminAudioEmpty");
+  if (empty) empty.textContent = "Hozircha audio hikoya yo'q.";
+  renderAdminAudioStoriesTable();
+}
+
+function openAdminAudioEditor(id) {
+  const story = adminAudioStories.find((item) => String(item.id) === String(id));
+  if (!story) return;
+  adminAudioEditId = story.id;
+  adminAudioBase64 = null;
+  $("#adminAudioTitle").value = story.title || "";
+  $("#adminAudioDescription").value = story.description || "";
+  fillAdminAudioWorkSelect(story.workId || "");
+  $("#adminAudioOrder").value = story.order || 0;
+  $("#adminAudioDuration").value = story.duration || "";
+  $("#adminAudioActive").checked = story.isActive !== false;
+  const file = $("#adminAudioFile");
+  if (file) file.value = "";
+  const preview = $("#adminAudioPreview");
+  if (preview) {
+    preview.src = story.audioUrl || "";
+    preview.hidden = !story.audioUrl;
+    preview.load();
+  }
+  const submit = $("#adminAudioSubmit");
+  if (submit) submit.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> O'zgarishlarni saqlash`;
+  const cancel = $("#adminAudioCancel");
+  if (cancel) cancel.hidden = false;
+  $("#adminAudioTitle")?.focus();
+}
+
+async function saveAdminAudioStory(e) {
+  e?.preventDefault();
+  const payload = {
+    title: $("#adminAudioTitle")?.value?.trim() || "",
+    description: $("#adminAudioDescription")?.value?.trim() || "",
+    workId: $("#adminAudioWork")?.value || "",
+    order: +($("#adminAudioOrder")?.value || 0),
+    duration: +($("#adminAudioDuration")?.value || 0),
+    isActive: !!$("#adminAudioActive")?.checked,
+  };
+  if (adminAudioBase64) payload.audioBase64 = adminAudioBase64;
+  const res = adminAudioEditId
+    ? await TeacherApi.updateAudioStory(adminAudioEditId, payload)
+    : await TeacherApi.createAudioStory(payload);
+  if (!res.ok) {
+    toast(res.msg, "err");
+    return;
+  }
+  toast(adminAudioEditId ? "Audio hikoya saqlandi" : "Audio hikoya qo'shildi", "win");
+  resetAdminAudioForm();
+  await renderAdminAudioStoriesPanel();
+}
+
+async function deleteAdminAudioStory(id) {
+  if (!confirm("Audio hikoyani o'chirishni tasdiqlaysizmi? Audio fayl ham Storage'dan o'chiriladi.")) return;
+  const res = await TeacherApi.deleteAudioStory(id);
+  if (!res.ok) {
+    toast(res.msg, "err");
+    return;
+  }
+  toast("Audio hikoya o'chirildi", "win");
+  if (String(adminAudioEditId) === String(id)) resetAdminAudioForm();
+  await renderAdminAudioStoriesPanel();
+}
+
+function readFileAsBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result);
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+function readImageFileAsBase64(file) {
+  return readFileAsBase64(file);
 }
 
 function collectAdminWorkTestsFromEditor() {
@@ -5106,8 +5274,7 @@ async function renderTeacher() {
       : "Moderator sifatida o'quvchilar va ijod galereyasini kuzatishingiz mumkin.";
   }
 
-  const staffTab = $(".admin-tab-admin-only");
-  if (staffTab) staffTab.hidden = !(t?.isAdmin);
+  $$(".admin-tab-admin-only").forEach((tab) => { tab.hidden = !(t?.isAdmin); });
 
   if (!Api.online || !TeacherApi.isLoggedIn()) {
     renderAdminStats({ total: 0, totalIjod: 0, avgXp: 0, grade3: 0, grade4: 0 });
@@ -5135,6 +5302,7 @@ async function renderTeacher() {
   renderAdminMatchPanel();
   renderAdminQuizPanel();
   renderAdminMapPanel();
+  if (t?.isAdmin) await renderAdminAudioStoriesPanel();
   await renderAdminIjodGrid();
   if (t?.isAdmin) await renderAdminStaffTable();
 }
@@ -5259,6 +5427,44 @@ function bindAdminPanelEvents() {
     const tests = collectAdminWorkTestsFromEditor();
     tests.push({ q: "", options: ["", "", "", ""], correct: 0 });
     renderAdminWorkTestsEditor(tests);
+  });
+
+  $("#adminAudioForm")?.addEventListener("submit", saveAdminAudioStory);
+  $("#adminAudioCancel")?.addEventListener("click", resetAdminAudioForm);
+  $("#adminAudioFile")?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      adminAudioBase64 = null;
+      return;
+    }
+    if (!String(file.type || "").startsWith("audio/")) {
+      toast("Faqat audio fayl yuklang", "err");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      toast("Audio fayl 50 MB dan kichik bo'lsin.", "err");
+      e.target.value = "";
+      return;
+    }
+    try {
+      adminAudioBase64 = await readFileAsBase64(file);
+      const preview = $("#adminAudioPreview");
+      if (preview) {
+        preview.src = adminAudioBase64;
+        preview.hidden = false;
+        preview.load();
+        preview.onloadedmetadata = () => {
+          const durationInput = $("#adminAudioDuration");
+          if (durationInput && !durationInput.value && Number.isFinite(preview.duration)) {
+            durationInput.value = String(Math.round(preview.duration));
+          }
+        };
+      }
+    } catch {
+      adminAudioBase64 = null;
+      toast("Audio fayl yuklanmadi", "err");
+    }
   });
 
   $("#adminCreateTeacherForm")?.addEventListener("submit", async (e) => {
@@ -5476,40 +5682,32 @@ function drawParentCharts() {
 }
 
 /* ====================== 13. AUDIO HIKOYALAR ====================== */
-function renderAudio() {
-  $("#audioGrid").innerHTML = TEXTBOOK_WORKS.map((w) => `
-    <div class="audio-item" data-work="${w.id}">
-      <button type="button" class="a-play" aria-label="${esc(w.title)} — eshitish"><i class="fa-solid fa-play"></i></button>
-      <div><h4>${esc(w.title)}</h4><small>${esc(w.author)} · ${w.grade}-sinf</small></div>
-    </div>`).join("");
-  $$("#audioGrid .audio-item").forEach((el) => {
-    el.querySelector(".a-play").addEventListener("click", () => playAudio(el, el.dataset.work));
-  });
-}
-
-function playAudio(el, workId) {
-  const w = getWorkById(workId);
-  if (!w) { toast("Asar topilmadi", "err"); return; }
-  if (!("speechSynthesis" in window)) { toast("Brauzer ovozli o'qishni qo'llab-quvvatlamaydi."); return; }
-  const synth = window.speechSynthesis;
-  if (el.classList.contains("playing")) {
-    synth.cancel();
-    el.classList.remove("playing");
-    el.querySelector(".a-play i").className = "fa-solid fa-play";
-    return;
+async function renderAudio() {
+  const grid = $("#audioGrid");
+  if (!grid) return;
+  grid.innerHTML = `<div class="audio-loading"><i class="fa-solid fa-spinner fa-spin"></i> Audio hikoyalar yuklanmoqda...</div>`;
+  try {
+    const stories = await AudioStoriesApi.fetchAll();
+    if (!stories.length) {
+      grid.innerHTML = `<div class="audio-empty"><i class="fa-solid fa-headphones"></i><b>Hozircha audio hikoyalar yuklanmagan.</b><span>Admin panel orqali audio fayl qo'shilganda shu yerda ko'rinadi.</span></div>`;
+      return;
+    }
+    grid.innerHTML = stories.map((story) => {
+      const w = story.workId ? getWorkById(story.workId) : null;
+      const duration = formatAudioDuration(story.duration);
+      return `<article class="audio-item">
+        <div class="audio-icon" aria-hidden="true"><i class="fa-solid fa-headphones"></i></div>
+        <div class="audio-body">
+          <h4>${esc(story.title)}</h4>
+          <p>${esc(story.description || w?.summary || "Audio hikoyani tinglang va asar mazmunini eslab qoling.")}</p>
+          <small>${w ? `${esc(w.title)} · ${w.grade}-sinf` : "Audio hikoya"}${duration ? ` · ${duration}` : ""}</small>
+          <audio controls preload="none" src="${esc(story.audioUrl)}"></audio>
+        </div>
+      </article>`;
+    }).join("");
+  } catch {
+    grid.innerHTML = `<div class="audio-empty"><i class="fa-solid fa-triangle-exclamation"></i><b>Audio hikoyalar yuklanmadi.</b><span>Internet yoki server sozlamalarini tekshiring.</span></div>`;
   }
-  synth.cancel();
-  $$("#audioGrid .audio-item").forEach((x) => { x.classList.remove("playing"); x.querySelector(".a-play i").className = "fa-solid fa-play"; });
-  const text = `${w.title}. ${w.author}. ${w.summary} Saboq: ${w.moral}`;
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = "uz-UZ";
-  if (!u.lang || u.lang === "") u.lang = "tr-TR";
-  u.rate = 0.95;
-  u.onend = () => { el.classList.remove("playing"); el.querySelector(".a-play i").className = "fa-solid fa-play"; };
-  el.classList.add("playing");
-  el.querySelector(".a-play i").className = "fa-solid fa-pause";
-  synth.speak(u);
-  if (!Store.data.readWorks.includes(workId)) { addXP(10, true); }
 }
 
 /* ====================== 14. IJOD GALEREYASI ====================== */
@@ -6724,10 +6922,10 @@ function collectPageTargets(pageEl) {
   push(pageEl.querySelector(".teacher-dash-head"));
   pageEl.querySelectorAll(".filters, .parent-stats, .teacher-stats").forEach(push);
   pageEl.querySelectorAll(
-    ".card, .game-card, .test-item, .work-card, .audio-card, .badge, .ach-grid > *, .two-col > *, .pstat, .method-item, .steam-item"
+    ".card, .game-card, .test-item, .work-card, .audio-item, .badge, .ach-grid > *, .two-col > *, .pstat, .method-item, .steam-item"
   ).forEach(push);
   pageEl.querySelectorAll(
-    "#worksGrid .work-card, #gamesGrid .game-card, #testPicker .test-item, #audioGrid .audio-card, #badgeGrid .badge"
+    "#worksGrid .work-card, #gamesGrid .game-card, #testPicker .test-item, #audioGrid .audio-item, #badgeGrid .badge"
   ).forEach(push);
   pageEl.querySelectorAll(
     "#gameStage .stage-head, #gameStage .test-picker, #gameStage .test-item, #gameStage .puzzle-layout, #gameStage .test-result-popup, #gameStage .puzzle-grid, #gameStage .puzzle-preview"

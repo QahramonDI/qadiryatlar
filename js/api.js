@@ -477,6 +477,44 @@ const TeacherApi = {
     return { ok: true };
   },
 
+  async fetchAudioStoriesAdmin() {
+    const res = await fetch("/api/teacher/audio-stories", { headers: this.headers(), cache: "no-store" });
+    if (!res.ok) throw new Error("Audio hikoyalar yuklanmadi");
+    return res.json();
+  },
+
+  async createAudioStory(payload) {
+    const res = await fetch("/api/audio-stories", {
+      method: "POST",
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, msg: data.error || "Xatolik" };
+    return { ok: true, story: data.story };
+  },
+
+  async updateAudioStory(id, payload) {
+    const res = await fetch(`/api/audio-stories/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      headers: this.headers(),
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, msg: data.error || "Xatolik" };
+    return { ok: true, story: data.story };
+  },
+
+  async deleteAudioStory(id) {
+    const res = await fetch(`/api/audio-stories/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: this.headers(),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, msg: data.error || "Xatolik" };
+    return { ok: true };
+  },
+
   async fetchStaff() {
     const res = await fetch("/api/teacher/teachers", { headers: this.headers(), cache: "no-store" });
     if (!res.ok) throw new Error("Xodimlar ro'yxati yuklanmadi");
@@ -492,6 +530,14 @@ const TeacherApi = {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { ok: false, msg: data.error || "Xatolik" };
     return { ok: true, teacher: data.teacher };
+  },
+};
+
+const AudioStoriesApi = {
+  async fetchAll() {
+    const res = await fetch("/api/audio-stories", { cache: "no-store" });
+    if (!res.ok) throw new Error("Audio hikoyalar yuklanmadi");
+    return res.json();
   },
 };
 
@@ -830,6 +876,7 @@ const MapConfig = {
 if (typeof window !== "undefined") {
   window.Api = Api;
   window.TeacherApi = TeacherApi;
+  window.AudioStoriesApi = AudioStoriesApi;
   window.IjodApi = IjodApi;
   window.WorkViews = WorkViews;
   window.WorkRatings = WorkRatings;

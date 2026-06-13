@@ -389,6 +389,7 @@
         <button type="button" class="admin-tab" data-admin-tab="students" role="tab"><i class="fa-solid fa-users"></i> O'quvchilar</button>
         <button type="button" class="admin-tab" data-admin-tab="ijod" role="tab"><i class="fa-solid fa-images"></i> Rasmlar</button>
         <button type="button" class="admin-tab" data-admin-tab="works" role="tab"><i class="fa-solid fa-book"></i> Asarlar</button>
+        <button type="button" class="admin-tab admin-tab-admin-only" data-admin-tab="audio" role="tab" hidden><i class="fa-solid fa-headphones"></i> Audio hikoyalar</button>
         <button type="button" class="admin-tab" data-admin-tab="values" role="tab"><i class="fa-solid fa-seedling"></i> Qadriyatlar</button>
         <button type="button" class="admin-tab" data-admin-tab="crossword" role="tab"><i class="fa-solid fa-table-cells"></i> Krossvordlar</button>
         <button type="button" class="admin-tab" data-admin-tab="match" role="tab"><i class="fa-solid fa-link"></i> Juftlash</button>
@@ -562,6 +563,42 @@
             <span id="adminWorksSortStatusText">Eng yangi asarlar birinchi ko'rsatilmoqda</span>
           </p>
           <div class="table-wrap"><table class="analysis-table" id="adminWorksTable"></table></div>
+        </section>
+      </div>
+
+      <div class="admin-panel" id="adminPanelAudio" data-admin-panel="audio" hidden>
+        <section class="card">
+          <div class="card-head"><h3><i class="fa-solid fa-headphones"></i> Audio hikoya qo'shish</h3></div>
+          <form class="admin-work-form admin-audio-form" id="adminAudioForm">
+            <div class="admin-form-grid">
+              <input type="text" id="adminAudioTitle" placeholder="Audio sarlavhasi *" required maxlength="120" />
+              <select id="adminAudioWork"></select>
+              <input type="number" id="adminAudioOrder" placeholder="Tartib raqami" min="0" step="1" />
+              <input type="number" id="adminAudioDuration" placeholder="Davomiylik (soniya)" min="0" step="1" />
+            </div>
+            <label class="admin-field-label" for="adminAudioDescription">Qisqa tavsif</label>
+            <textarea id="adminAudioDescription" rows="2" maxlength="600" placeholder="Audio hikoya haqida qisqa ma'lumot…"></textarea>
+            <div class="admin-audio-upload-row">
+              <label class="admin-file-label"><i class="fa-solid fa-file-audio"></i> Audio fayl yuklash
+                <input type="file" id="adminAudioFile" accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/webm" hidden />
+              </label>
+              <label class="admin-audio-active" for="adminAudioActive">
+                <input type="checkbox" id="adminAudioActive" checked />
+                <span>Saytda ko'rinsin</span>
+              </label>
+            </div>
+            <audio id="adminAudioPreview" class="admin-audio-preview" controls hidden></audio>
+            <div class="admin-audio-actions">
+              <button type="submit" class="solid-btn" id="adminAudioSubmit"><i class="fa-solid fa-floppy-disk"></i> Audio hikoyani saqlash</button>
+              <button type="button" class="ghost-btn" id="adminAudioCancel" hidden>Bekor</button>
+            </div>
+            <p class="muted admin-form-hint">MP3, M4A, WAV, OGG yoki WEBM · maksimal 50 MB. Admin yuklagan audio bosh sahifada HTML5 player orqali eshitiladi.</p>
+          </form>
+        </section>
+        <section class="card">
+          <div class="card-head"><h3><i class="fa-solid fa-list"></i> Audio hikoyalar ro'yxati</h3></div>
+          <div class="table-wrap"><table class="analysis-table admin-audio-table" id="adminAudioStoriesTable"></table></div>
+          <p class="muted" id="adminAudioEmpty" hidden>Hozircha audio hikoya yo'q.</p>
         </section>
       </div>
 
@@ -989,7 +1026,7 @@
     <section class="page" id="page-audio" hidden>
       <div class="page-head">
         <h2><i class="fa-solid fa-headphones"></i> Audio hikoyalar</h2>
-        <p class="muted">Asarni tanlang va matnni ovozli eshiting (brauzer ovozi orqali).</p>
+        <p class="muted">Admin yuklagan real audio hikoyalarni tinglang.</p>
       </div>
       <div class="audio-grid" id="audioGrid"></div>
     </section>
