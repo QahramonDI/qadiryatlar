@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
+import { getSupabaseAdmin, getSupabaseBucket } from "./supabase.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -122,6 +123,29 @@ export async function saveOptimizedMedia(category, basename, imageBase64, option
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, filename), buf);
   return `/api/media/${category}/${filename}`;
+}
+
+export async function saveOptimizedStorageMedia(category, basename, imageBase64, options = {}) {
+  const { buf, ext } = await optimizeImageBase64(imageBase64, options);
+  const safeCategory = String(category).replace(/[^a-zA-Z0-9_-]/g, "") || "media";
+  const safeBase = String(basename).replace(/[^a-zA-Z0-9_-]/g, "") || "image";
+  const objectPath = `${safeCategory}/${safeBase}.${ext}`;
+  const bucket = getSupabaseBucket();
+  const supabase = getSupabaseAdmin();
+  const contentType = ext === "webp" ? "image/webp" : "image/jpeg";
+  const { error } = await supabase.storage
+    .from(bucket)
+    .upload(objectPath, buf, {
+      contentType,
+      upsert: true,
+    });
+  if (error) {
+    const err = new Error(`Supabase Storage upload xatoligi: ${error.message}`);
+    err.code = "SUPABASE_STORAGE_ERROR";
+    throw err;
+  }
+  const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
+  return data.publicUrl;
 }
 
 export function deleteMediaByUrl(url) {

@@ -98,6 +98,17 @@ migrateLegacyUploads();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "qk-dev-secret-change-in-production";
 
+function handleSupabaseError(res, e, fallbackMessage) {
+  if (e.code === "SUPABASE_NOT_CONFIGURED") {
+    return res.status(500).json({ error: e.message });
+  }
+  if (e.code === "SUPABASE_QUERY_ERROR" || e.code === "SUPABASE_STORAGE_ERROR") {
+    return res.status(500).json({ error: e.message });
+  }
+  console.error(e);
+  return res.status(500).json({ error: fallbackMessage });
+}
+
 async function optimizeAvatarDataUrl(avatarImg) {
   if (!avatarImg) return null;
   if (!String(avatarImg).startsWith("data:image/")) return avatarImg;
@@ -546,12 +557,20 @@ app.delete("/api/teacher/ijod/:id", teacherAuthMiddleware, (req, res) => {
   res.json({ ok: true });
 });
 
-app.get("/api/works/custom", (_req, res) => {
-  res.json(listCustomWorks());
+app.get("/api/works/custom", async (_req, res) => {
+  try {
+    res.json(await listCustomWorks());
+  } catch (e) {
+    handleSupabaseError(res, e, "Asarlar yuklanmadi");
+  }
 });
 
-app.get("/api/works/catalog", (_req, res) => {
-  res.json(getCatalogPublic());
+app.get("/api/works/catalog", async (_req, res) => {
+  try {
+    res.json(await getCatalogPublic());
+  } catch (e) {
+    handleSupabaseError(res, e, "Asarlar katalogi yuklanmadi");
+  }
 });
 
 app.get("/api/works/views", (_req, res) => {
@@ -644,12 +663,16 @@ app.post("/api/teacher/values/:id/restore", teacherAuthMiddleware, (req, res) =>
   res.json({ ok: true });
 });
 
-app.get("/api/teacher/works/:id", teacherAuthMiddleware, (req, res) => {
-  const custom = findCustomWork(req.params.id);
-  if (custom) return res.json({ work: custom, kind: "custom" });
-  const override = getWorkOverride(req.params.id);
-  if (override) return res.json({ work: { id: req.params.id, ...override }, kind: "override" });
-  res.json({ work: null, kind: "textbook" });
+app.get("/api/teacher/works/:id", teacherAuthMiddleware, async (req, res) => {
+  try {
+    const custom = await findCustomWork(req.params.id);
+    if (custom) return res.json({ work: custom, kind: "custom" });
+    const override = await getWorkOverride(req.params.id);
+    if (override) return res.json({ work: { id: req.params.id, ...override }, kind: "override" });
+    res.json({ work: null, kind: "textbook" });
+  } catch (e) {
+    handleSupabaseError(res, e, "Asar yuklanmadi");
+  }
 });
 
 app.put("/api/teacher/works/:id", teacherAuthMiddleware, async (req, res) => {
@@ -659,8 +682,7 @@ app.put("/api/teacher/works/:id", teacherAuthMiddleware, async (req, res) => {
   } catch (e) {
     if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Rasm formati noto'g'ri." });
     if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm 5 MB dan kichik bo'lsin." });
-    console.error(e);
-    res.status(500).json({ error: "Asarni saqlashda xatolik" });
+    handleSupabaseError(res, e, "Asarni saqlashda xatolik");
   }
 });
 
@@ -672,8 +694,7 @@ app.post("/api/teacher/works", teacherAuthMiddleware, async (req, res) => {
     if (e.message === "WORK_EXISTS") return res.status(409).json({ error: "Bu ID band" });
     if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Rasm formati noto'g'ri." });
     if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm 5 MB dan kichik bo'lsin." });
-    console.error(e);
-    res.status(500).json({ error: "Asar qo'shishda xatolik" });
+    handleSupabaseError(res, e, "Asar qo'shishda xatolik");
   }
 });
 
@@ -682,17 +703,21 @@ app.post("/api/teacher/crossword/parse", teacherAuthMiddleware, (req, res) => {
   res.json({ entries: parseCrosswordLines(lines) });
 });
 
-app.post("/api/teacher/works/:id/crossword/auto", teacherAuthMiddleware, (req, res) => {
-  const id = req.params.id;
-  let work = findCustomWork(id);
-  if (!work) {
-    const override = getWorkOverride(id);
-    work = override ? { id, ...override } : req.body?.work || null;
+app.post("/api/teacher/works/:id/crossword/auto", teacherAuthMiddleware, async (req, res) => {
+  try {
+    const id = req.params.id;
+    let work = await findCustomWork(id);
+    if (!work) {
+      const override = await getWorkOverride(id);
+      work = override ? { id, ...override } : req.body?.work || null;
+    }
+    if (!work) {
+      return res.status(404).json({ error: "Asar topilmadi — avval asar ma'lumotini yuboring" });
+    }
+    res.json({ entries: generateCrosswordEntriesFromWork(work) });
+  } catch (e) {
+    handleSupabaseError(res, e, "Krossvord yaratishda xatolik");
   }
-  if (!work) {
-    return res.status(404).json({ error: "Asar topilmadi — avval asar ma'lumotini yuboring" });
-  }
-  res.json({ entries: generateCrosswordEntriesFromWork(work) });
 });
 
 app.get("/api/match-pairs", (_req, res) => {
@@ -794,10 +819,14 @@ app.delete("/api/teacher/map-config/background", teacherAuthMiddleware, (_req, r
   }
 });
 
-app.delete("/api/teacher/works/:id", teacherAuthMiddleware, (req, res) => {
-  const removed = deleteCustomWork(req.params.id);
-  if (!removed) return res.status(404).json({ error: "Asar topilmadi" });
-  res.json({ ok: true, kind: removed.kind });
+app.delete("/api/teacher/works/:id", teacherAuthMiddleware, async (req, res) => {
+  try {
+    const removed = await deleteCustomWork(req.params.id);
+    if (!removed) return res.status(404).json({ error: "Asar topilmadi" });
+    res.json({ ok: true, kind: removed.kind });
+  } catch (e) {
+    handleSupabaseError(res, e, "Asarni o'chirishda xatolik");
+  }
 });
 
 app.get("/api/teacher/teachers", adminAuthMiddleware, (_req, res) => {

@@ -1,50 +1,5 @@
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import { saveOptimizedMedia, deleteMediaByUrl, DATA_DIR } from "./media-store.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_FILE = path.join(DATA_DIR, "custom-works.json");
-export const WORKS_UPLOAD_DIR = path.join(__dirname, "uploads", "works");
-fs.mkdirSync(WORKS_UPLOAD_DIR, { recursive: true });
-
-function ensureFile() {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ works: [], overrides: {}, hiddenIds: [] }, null, 2));
-  }
-}
-
-function readDb() {
-  ensureFile();
-  try {
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
-    return {
-      works: raw.works || [],
-      overrides: raw.overrides || {},
-      hiddenIds: raw.hiddenIds || [],
-    };
-  } catch {
-    return { works: [], overrides: {}, hiddenIds: [] };
-  }
-}
-
-function writeDb(data) {
-  ensureFile();
-  fs.writeFileSync(
-    DATA_FILE,
-    JSON.stringify(
-      {
-        works: data.works || [],
-        overrides: data.overrides || {},
-        hiddenIds: data.hiddenIds || [],
-      },
-      null,
-      2
-    )
-  );
-}
+import { saveOptimizedStorageMedia } from "./media-store.js";
+import { getSupabaseAdmin } from "./supabase.js";
 
 function slugId(title) {
   const base =
@@ -217,7 +172,7 @@ function normalizeWork(payload, existing = null) {
 }
 
 export function saveWorkImage(workId, imageBase64) {
-  return saveOptimizedMedia("works", workId, imageBase64, {
+  return saveOptimizedStorageMedia("works", workId, imageBase64, {
     maxBytes: 5 * 1024 * 1024,
     maxWidth: 1200,
     maxHeight: 900,
@@ -229,32 +184,153 @@ function hasNewWorkImage(payload) {
   return String(payload?.imageBase64 || "").startsWith("data:image/");
 }
 
-export function getCatalogPublic() {
-  const db = readDb();
+function rowToWork(row) {
+  const data = row.data && typeof row.data === "object" ? row.data : {};
+  const valueMain = row.value_main || data.valueMain || "halollik";
   return {
-    works: db.works,
-    overrides: db.overrides,
-    hiddenIds: db.hiddenIds,
+    id: row.id,
+    title: row.title || data.title || "Yangi asar",
+    author: row.author || data.author || "Noma'lum",
+    grade: +row.grade === 4 ? 4 : 3,
+    genre: row.genre || data.genre || "hikoya",
+    part: +row.part || data.part || 1,
+    valueMain,
+    values: Array.isArray(data.values) ? data.values.map(String) : [valueMain],
+    summary: row.summary || data.summary || "",
+    moral: row.moral || data.moral || "",
+    fullText: row.full_text || data.fullText || "",
+    questions: Array.isArray(data.questions) ? data.questions : [],
+    tests: Array.isArray(data.tests) ? data.tests : [],
+    crossword: Array.isArray(data.crossword) ? data.crossword : [],
+    illustration: data.illustration || { emoji: "📖", gradient: "linear-gradient(135deg,#e6821e,#7b3f00)" },
+    keywords: Array.isArray(data.keywords) ? data.keywords : [],
+    imageUrl: row.image_url || data.imageUrl || null,
+    custom: data.custom !== false,
+    created_at: row.created_at || data.created_at || new Date().toISOString(),
+    updated_at: row.updated_at || data.updated_at || new Date().toISOString(),
   };
 }
 
-export function listCustomWorks() {
-  return readDb().works || [];
+function workToRow(work, extraData = {}) {
+  const data = {
+    values: work.values || [work.valueMain],
+    questions: work.questions || [],
+    tests: work.tests || [],
+    crossword: work.crossword || [],
+    illustration: work.illustration || { emoji: "📖", gradient: "linear-gradient(135deg,#e6821e,#7b3f00)" },
+    keywords: work.keywords || [],
+    custom: work.custom !== false,
+    ...extraData,
+  };
+  return {
+    id: work.id,
+    title: work.title,
+    author: work.author,
+    grade: work.grade,
+    genre: work.genre,
+    part: work.part,
+    value_main: work.valueMain,
+    summary: work.summary,
+    moral: work.moral,
+    full_text: work.fullText,
+    image_url: work.imageUrl || null,
+    data,
+    updated_at: work.updated_at || new Date().toISOString(),
+  };
 }
 
-export function findCustomWork(id) {
-  return readDb().works.find((w) => w.id === id) || null;
+async function fetchWorkRows() {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("works")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    const err = new Error(`Supabase works jadvalidan o'qib bo'lmadi: ${error.message}`);
+    err.code = "SUPABASE_QUERY_ERROR";
+    throw err;
+  }
+  return data || [];
 }
 
-export function getWorkOverride(id) {
-  return readDb().overrides[id] || null;
+async function fetchWorkRow(id) {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("works")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) {
+    const err = new Error(`Supabase works jadvalidan asar o'qib bo'lmadi: ${error.message}`);
+    err.code = "SUPABASE_QUERY_ERROR";
+    throw err;
+  }
+  return data || null;
+}
+
+async function upsertWorkRow(row) {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase.from("works").upsert(row, { onConflict: "id" });
+  if (error) {
+    const err = new Error(`Supabase works jadvaliga yozib bo'lmadi: ${error.message}`);
+    err.code = "SUPABASE_QUERY_ERROR";
+    throw err;
+  }
+}
+
+function rowsToCatalog(rows) {
+  const works = [];
+  const overrides = {};
+  const hiddenIds = [];
+  for (const row of rows || []) {
+    const data = row.data && typeof row.data === "object" ? row.data : {};
+    if (data.hidden) {
+      hiddenIds.push(row.id);
+      continue;
+    }
+    const work = rowToWork(row);
+    if (data.custom !== false) works.push(work);
+    else overrides[row.id] = work;
+  }
+  return {
+    works,
+    overrides,
+    hiddenIds,
+  };
+}
+
+export async function getCatalogPublic() {
+  return rowsToCatalog(await fetchWorkRows());
+}
+
+export async function listCustomWorks() {
+  return (await fetchWorkRows())
+    .filter((row) => {
+      const data = row.data && typeof row.data === "object" ? row.data : {};
+      return data.custom !== false && !data.hidden;
+    })
+    .map(rowToWork);
+}
+
+export async function findCustomWork(id) {
+  const row = await fetchWorkRow(id);
+  if (!row) return null;
+  const data = row.data && typeof row.data === "object" ? row.data : {};
+  if (data.custom === false || data.hidden) return null;
+  return rowToWork(row);
+}
+
+export async function getWorkOverride(id) {
+  const row = await fetchWorkRow(id);
+  if (!row) return null;
+  const data = row.data && typeof row.data === "object" ? row.data : {};
+  if (data.custom !== false || data.hidden) return null;
+  return rowToWork(row);
 }
 
 export async function createCustomWork(payload) {
-  const db = readDb();
   const id = payload.id?.trim() || slugId(payload.title);
-  if (db.works.some((w) => w.id === id)) throw new Error("WORK_EXISTS");
-  if (db.hiddenIds.includes(id)) throw new Error("WORK_EXISTS");
+  if (await fetchWorkRow(id)) throw new Error("WORK_EXISTS");
 
   let work = normalizeWork({ ...payload, id, custom: true });
   if (!work.tests.length) work.tests = generateTestsForWork(work);
@@ -264,33 +340,29 @@ export async function createCustomWork(payload) {
     work.imageUrl = await saveWorkImage(id, payload.imageBase64);
   }
 
-  db.works.unshift(work);
-  writeDb(db);
+  await upsertWorkRow({ ...workToRow(work), created_at: work.created_at });
   return work;
 }
 
 export async function updateWork(id, payload) {
-  const db = readDb();
-  const customIdx = db.works.findIndex((w) => w.id === id);
+  const row = await fetchWorkRow(id);
+  const rowData = row?.data && typeof row.data === "object" ? row.data : {};
 
-  if (customIdx >= 0) {
-    const existing = db.works[customIdx];
+  if (row && rowData.custom !== false && !rowData.hidden) {
+    const existing = rowToWork(row);
     let work = normalizeWork(payload, existing);
     if (payload.regenerateTests) work.tests = generateTestsForWork(work);
     if (payload.regenerateCrossword) work.crossword = generateCrosswordForWork(work);
     if (hasNewWorkImage(payload)) {
-      const prevImageUrl = existing.imageUrl;
       work.imageUrl = await saveWorkImage(id, payload.imageBase64);
-      if (prevImageUrl && prevImageUrl !== work.imageUrl) deleteMediaByUrl(prevImageUrl);
     } else if (!work.imageUrl && existing.imageUrl) {
       work.imageUrl = existing.imageUrl;
     }
-    db.works[customIdx] = work;
-    writeDb(db);
+    await upsertWorkRow(workToRow(work));
     return { work, kind: "custom" };
   }
 
-  const prev = db.overrides[id] || {};
+  const prev = row && rowData.custom === false && !rowData.hidden ? rowToWork(row) : {};
   const patch = { ...prev, updated_at: new Date().toISOString() };
 
   const setIfPresent = (key, fn = (v) => v) => {
@@ -320,46 +392,39 @@ export async function updateWork(id, payload) {
     patch.crossword = generateCrosswordForWork({ id, ...prev, ...patch });
   }
   if (hasNewWorkImage(payload)) {
-    const prevImageUrl = prev.imageUrl;
     patch.imageUrl = await saveWorkImage(id, payload.imageBase64);
-    if (prevImageUrl && prevImageUrl !== patch.imageUrl) deleteMediaByUrl(prevImageUrl);
   } else if (prev.imageUrl) {
     patch.imageUrl = prev.imageUrl;
   } else if (patch.imageUrl === null) {
     delete patch.imageUrl;
   }
 
-  db.overrides[id] = patch;
-  writeDb(db);
-  return { work: { id, ...db.overrides[id] }, kind: "override" };
+  const work = normalizeWork({ ...patch, id, custom: false }, { id });
+  await upsertWorkRow(workToRow(work, { custom: false }));
+  return { work: { id, ...work }, kind: "override" };
 }
 
-export function deleteCustomWork(id) {
-  const db = readDb();
-  const idx = db.works.findIndex((w) => w.id === id);
-  if (idx >= 0) {
-    const [removed] = db.works.splice(idx, 1);
-    writeDb(db);
-    removeWorkImage(removed.imageUrl);
-    return { removed, kind: "custom" };
+export async function deleteCustomWork(id) {
+  const row = await fetchWorkRow(id);
+  const supabase = getSupabaseAdmin();
+  if (row) {
+    const data = row.data && typeof row.data === "object" ? row.data : {};
+    if (data.custom !== false) {
+      const work = rowToWork(row);
+      const { error } = await supabase.from("works").delete().eq("id", id);
+      if (error) throw new Error(`Supabase works jadvalidan o'chirib bo'lmadi: ${error.message}`);
+      return { removed: work, kind: "custom" };
+    }
   }
 
-  if (!db.hiddenIds.includes(id)) {
-    db.hiddenIds.push(id);
-    writeDb(db);
-    return { removed: { id }, kind: "hidden" };
-  }
-  return null;
+  const hidden = normalizeWork({ id, title: id, custom: false }, { id });
+  await upsertWorkRow(workToRow(hidden, { custom: false, hidden: true }));
+  return { removed: { id }, kind: "hidden" };
 }
 
-function removeWorkImage(imageUrl) {
-  deleteMediaByUrl(imageUrl);
-}
-
-export function restoreTextbookWork(id) {
-  const db = readDb();
-  db.hiddenIds = db.hiddenIds.filter((x) => x !== id);
-  delete db.overrides[id];
-  writeDb(db);
+export async function restoreTextbookWork(id) {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase.from("works").delete().eq("id", id);
+  if (error) throw new Error(`Supabase works jadvalidan tiklab bo'lmadi: ${error.message}`);
   return true;
 }
