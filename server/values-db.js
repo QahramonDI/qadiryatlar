@@ -1,22 +1,14 @@
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "data", "custom-values.json");
-
-function ensureFile() {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ values: [], overrides: {}, hiddenIds: [] }, null, 2));
-  }
-}
+registerJsonStore("custom-values", DATA_FILE, { values: [], overrides: {}, hiddenIds: [] });
 
 function readDb() {
-  ensureFile();
   try {
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    const raw = readJsonStore("custom-values");
     return {
       values: raw.values || [],
       overrides: raw.overrides || {},
@@ -28,15 +20,11 @@ function readDb() {
 }
 
 function writeDb(data) {
-  ensureFile();
-  fs.writeFileSync(
-    DATA_FILE,
-    JSON.stringify(
-      { values: data.values || [], overrides: data.overrides || {}, hiddenIds: data.hiddenIds || [] },
-      null,
-      2
-    )
-  );
+  writeJsonStore("custom-values", {
+    values: data.values || [],
+    overrides: data.overrides || {},
+    hiddenIds: data.hiddenIds || [],
+  });
 }
 
 function slugId(name) {

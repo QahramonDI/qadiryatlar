@@ -43,18 +43,17 @@ export function ensurePersistentDataDir() {
 }
 
 export function parseImageBase64(imageBase64, maxBytes = 6 * 1024 * 1024) {
-  const match = String(imageBase64 || "").match(/^data:image\/(jpeg|jpg|png|webp|svg\+xml);base64,(.+)$/i);
+  const match = String(imageBase64 || "").match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/i);
   if (!match) throw new Error("INVALID_IMAGE");
   let ext = match[1].toLowerCase();
   if (ext === "jpeg") ext = "jpg";
-  if (ext === "svg+xml") ext = "svg";
   const buf = Buffer.from(match[2], "base64");
   if (buf.length > maxBytes) throw new Error("IMAGE_TOO_LARGE");
   return { buf, ext };
 }
 
 function toDataUrl(buf, ext) {
-  const mime = ext === "jpg" ? "jpeg" : ext === "svg" ? "svg+xml" : ext;
+  const mime = ext === "jpg" ? "jpeg" : ext;
   return `data:image/${mime};base64,${buf.toString("base64")}`;
 }
 
@@ -146,6 +145,30 @@ export async function saveOptimizedStorageMedia(category, basename, imageBase64,
   }
   const { data } = supabase.storage.from(bucket).getPublicUrl(objectPath);
   return data.publicUrl;
+}
+
+export async function deleteStorageMediaByUrl(url) {
+  if (!url || url.startsWith("data:image/")) return;
+  if (url.startsWith("/api/media/") || url.startsWith("/uploads/")) {
+    deleteMediaByUrl(url);
+    return;
+  }
+
+  const bucket = getSupabaseBucket();
+  let objectPath = "";
+  try {
+    const parsed = new URL(url);
+    const marker = `/storage/v1/object/public/${bucket}/`;
+    const idx = parsed.pathname.indexOf(marker);
+    if (idx >= 0) {
+      objectPath = decodeURIComponent(parsed.pathname.slice(idx + marker.length));
+    }
+  } catch {
+    return;
+  }
+  if (!objectPath) return;
+  const { error } = await getSupabaseAdmin().storage.from(bucket).remove([objectPath]);
+  if (error) console.error(`[storage] ${objectPath} o'chirilmadi: ${error.message}`);
 }
 
 export function deleteMediaByUrl(url) {

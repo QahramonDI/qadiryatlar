@@ -1,25 +1,14 @@
-import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
-import { saveMedia, deleteMediaByUrl, DATA_DIR } from "./media-store.js";
+import { DATA_DIR, deleteStorageMediaByUrl, saveOptimizedStorageMedia } from "./media-store.js";
+import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(DATA_DIR, "map-config.json");
-export const MAP_UPLOAD_DIR = path.join(__dirname, "uploads", "map");
-fs.mkdirSync(MAP_UPLOAD_DIR, { recursive: true });
+registerJsonStore("map-config", DATA_FILE, { regions: {} });
 
 const REGION_IDS = [
   "qoraqalpogiston", "xorazm", "navoiy", "buxoro", "qashqadaryo", "surxondaryo",
   "samarqand", "jizzax", "sirdaryo", "toshkent", "namangan", "andijon", "fargona",
 ];
-
-function ensureFile() {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ regions: {} }, null, 2));
-  }
-}
 
 function normalizeRegionEntry(id, raw = {}) {
   const out = {};
@@ -40,9 +29,8 @@ function normalizeRegionEntry(id, raw = {}) {
 }
 
 function readDb() {
-  ensureFile();
   try {
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    const raw = readJsonStore("map-config");
     const regions = {};
     for (const [id, entry] of Object.entries(raw.regions || {})) {
       if (!REGION_IDS.includes(id)) continue;
@@ -57,10 +45,9 @@ function readDb() {
 }
 
 function writeDb(data) {
-  ensureFile();
   const payload = { regions: data.regions || {} };
   if (data.backgroundUrl) payload.backgroundUrl = data.backgroundUrl;
-  fs.writeFileSync(DATA_FILE, JSON.stringify(payload, null, 2));
+  writeJsonStore("map-config", payload);
 }
 
 export function getMapConfigPublic() {
@@ -80,23 +67,28 @@ export function saveMapConfig(payload) {
   return readDb();
 }
 
-export function saveMapInfographic(regionId, imageBase64) {
+export async function saveMapInfographic(regionId, imageBase64) {
   const id = String(regionId || "").trim();
   if (!REGION_IDS.includes(id)) throw new Error("INVALID_REGION");
 
   const db = readDb();
   const prev = db.regions[id]?.infographicUrl;
-  const url = saveMedia("map", id, imageBase64, 6 * 1024 * 1024);
+  const url = await saveOptimizedStorageMedia("map", id, imageBase64, {
+    maxBytes: 6 * 1024 * 1024,
+    maxWidth: 1400,
+    maxHeight: 1400,
+    quality: 78,
+  });
 
   db.regions[id] = { ...(db.regions[id] || {}), infographicUrl: url };
   writeDb({ regions: db.regions, backgroundUrl: db.backgroundUrl });
 
-  if (prev && prev !== url) deleteMediaByUrl(prev);
+  if (prev && prev !== url) await deleteStorageMediaByUrl(prev);
 
   return { url, config: readDb() };
 }
 
-export function removeMapInfographic(regionId) {
+export async function removeMapInfographic(regionId) {
   const id = String(regionId || "").trim();
   if (!REGION_IDS.includes(id)) throw new Error("INVALID_REGION");
   const db = readDb();
@@ -106,36 +98,41 @@ export function removeMapInfographic(regionId) {
     if (!Object.keys(db.regions[id]).length) delete db.regions[id];
   }
   writeDb({ regions: db.regions, backgroundUrl: db.backgroundUrl });
-  if (prev) deleteMediaByUrl(prev);
+  if (prev) await deleteStorageMediaByUrl(prev);
   return readDb();
 }
 
-function saveMapImageFile(filename, imageBase64, maxBytes = 6 * 1024 * 1024) {
+async function saveMapImageFile(filename, imageBase64, maxBytes = 6 * 1024 * 1024) {
   const base = path.basename(filename, path.extname(filename));
-  return saveMedia("map", base, imageBase64, maxBytes);
+  return saveOptimizedStorageMedia("map", base, imageBase64, {
+    maxBytes,
+    maxWidth: 1600,
+    maxHeight: 1200,
+    quality: 78,
+  });
 }
 
-function removeMapUploadFile(url) {
-  deleteMediaByUrl(url);
+async function removeMapUploadFile(url) {
+  await deleteStorageMediaByUrl(url);
 }
 
-export function saveMapBackground(imageBase64) {
+export async function saveMapBackground(imageBase64) {
   const db = readDb();
   const prev = db.backgroundUrl;
-  const match = String(imageBase64 || "").match(/^data:image\/(jpeg|jpg|png|webp|svg\+xml);base64,/i);
+  const match = String(imageBase64 || "").match(/^data:image\/(jpeg|jpg|png|webp);base64,/i);
   const ext = match?.[1]?.toLowerCase() === "jpeg"
     ? "jpg"
     : (match?.[1]?.toLowerCase() === "svg+xml" ? "svg" : match?.[1]?.toLowerCase() || "png");
-  const urlFinal = saveMapImageFile(`background.${ext}`, imageBase64);
+  const urlFinal = await saveMapImageFile(`background.${ext}`, imageBase64);
   writeDb({ regions: db.regions, backgroundUrl: urlFinal });
-  if (prev && prev !== urlFinal) removeMapUploadFile(prev);
+  if (prev && prev !== urlFinal) await removeMapUploadFile(prev);
   return { url: urlFinal, config: readDb() };
 }
 
-export function removeMapBackground() {
+export async function removeMapBackground() {
   const db = readDb();
   const prev = db.backgroundUrl;
   writeDb({ regions: db.regions, backgroundUrl: null });
-  removeMapUploadFile(prev);
+  await removeMapUploadFile(prev);
   return readDb();
 }

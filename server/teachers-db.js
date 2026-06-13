@@ -1,29 +1,22 @@
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import bcrypt from "bcryptjs";
 import { getLeaderboard } from "./db.js";
 import { listIjod } from "./ijod-db.js";
+import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "data");
 const teachersPath = path.join(dataDir, "teachers.json");
 
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+registerJsonStore("teachers", teachersPath, { teachers: [] });
 
 function loadTeachersDb() {
-  if (!fs.existsSync(teachersPath)) {
-    return { teachers: [] };
-  }
-  try {
-    return JSON.parse(fs.readFileSync(teachersPath, "utf8"));
-  } catch {
-    return { teachers: [] };
-  }
+  return readJsonStore("teachers");
 }
 
 function saveTeachersDb(db) {
-  fs.writeFileSync(teachersPath, JSON.stringify(db, null, 2), "utf8");
+  writeJsonStore("teachers", db);
 }
 
 function nextId(list) {

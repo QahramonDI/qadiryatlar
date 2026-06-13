@@ -1,29 +1,16 @@
-import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { DATA_DIR } from "./media-store.js";
+import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(DATA_DIR, "ijod.json");
-
-function ensureFile() {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify({ items: [] }, null, 2));
-}
+registerJsonStore("ijod", DATA_FILE, { items: [] });
 
 function readDb() {
-  ensureFile();
-  try {
-    return JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
-  } catch {
-    return { items: [] };
-  }
+  return readJsonStore("ijod");
 }
 
 function writeDb(data) {
-  ensureFile();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  writeJsonStore("ijod", data);
 }
 
 function ratingStats(item, userId = null) {

@@ -1,31 +1,18 @@
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "data", "work-views.json");
-
-function ensureFile() {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ counts: {} }, null, 2));
-  }
-}
+registerJsonStore("work-views", DATA_FILE, { counts: {} });
 
 function readDb() {
-  ensureFile();
-  try {
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
-    return raw.counts && typeof raw.counts === "object" ? raw.counts : {};
-  } catch {
-    return {};
-  }
+  const raw = readJsonStore("work-views");
+  return raw.counts && typeof raw.counts === "object" ? raw.counts : {};
 }
 
 function writeDb(counts) {
-  ensureFile();
-  fs.writeFileSync(DATA_FILE, JSON.stringify({ counts }, null, 2));
+  writeJsonStore("work-views", { counts });
 }
 
 export function getAllViewCounts() {

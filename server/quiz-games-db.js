@@ -1,6 +1,6 @@
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "data", "quiz-games.json");
@@ -10,14 +10,7 @@ const DEFAULTS = {
   author: { pickCount: 8, items: [] },
   truefalse: { pickCount: 10, items: [] },
 };
-
-function ensureFile() {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(DEFAULTS, null, 2));
-  }
-}
+registerJsonStore("quiz-games", DATA_FILE, DEFAULTS);
 
 function clampPick(n, min = 3, max = 12) {
   return Math.min(max, Math.max(min, +n || min));
@@ -61,9 +54,8 @@ function sanitizeSection(section, kind) {
 }
 
 function readDb() {
-  ensureFile();
   try {
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    const raw = readJsonStore("quiz-games");
     return {
       guess: sanitizeSection(raw.guess, "guess"),
       author: sanitizeSection(raw.author, "author"),
@@ -75,13 +67,12 @@ function readDb() {
 }
 
 function writeDb(payload) {
-  ensureFile();
   const data = {
     guess: sanitizeSection(payload?.guess, "guess"),
     author: sanitizeSection(payload?.author, "author"),
     truefalse: sanitizeSection(payload?.truefalse, "truefalse"),
   };
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+  writeJsonStore("quiz-games", data);
   return data;
 }
 

@@ -59,15 +59,14 @@ import {
 import {
   resolveMediaFilePath,
   migrateLegacyUploads,
-  saveOptimizedMedia,
+  saveOptimizedStorageMedia,
   optimizeImageBase64,
-  deleteMediaByUrl,
+  deleteStorageMediaByUrl,
   MEDIA_ROOT,
   LEGACY_UPLOADS_ROOT,
   ensurePersistentDataDir,
 } from "./media-store.js";
-
-ensureBootstrapAdmin();
+import { flushJsonStoreWrites, initJsonStores } from "./json-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
@@ -90,10 +89,13 @@ function loadEnvFile() {
 }
 loadEnvFile();
 ensurePersistentDataDir();
-const IJOD_UPLOAD_DIR = path.join(__dirname, "uploads", "ijod");
-const WORKS_UPLOAD_DIR = path.join(__dirname, "uploads", "works");
-fs.mkdirSync(IJOD_UPLOAD_DIR, { recursive: true });
-fs.mkdirSync(WORKS_UPLOAD_DIR, { recursive: true });
+try {
+  await initJsonStores();
+  ensureBootstrapAdmin();
+} catch (e) {
+  console.error(e.message || e);
+  process.exit(1);
+}
 migrateLegacyUploads();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "qk-dev-secret-change-in-production";
@@ -550,11 +552,15 @@ app.put("/api/teacher/ijod/:id", teacherAuthMiddleware, (req, res) => {
   res.json(item);
 });
 
-app.delete("/api/teacher/ijod/:id", teacherAuthMiddleware, (req, res) => {
-  const removed = adminDeleteIjod(req.params.id);
-  if (!removed) return res.status(404).json({ error: "Rasm topilmadi" });
-  if (removed.image_url) deleteMediaByUrl(removed.image_url);
-  res.json({ ok: true });
+app.delete("/api/teacher/ijod/:id", teacherAuthMiddleware, async (req, res) => {
+  try {
+    const removed = adminDeleteIjod(req.params.id);
+    if (!removed) return res.status(404).json({ error: "Rasm topilmadi" });
+    if (removed.image_url) await deleteStorageMediaByUrl(removed.image_url);
+    res.json({ ok: true });
+  } catch (e) {
+    handleSupabaseError(res, e, "Rasmni o'chirishda xatolik");
+  }
 });
 
 app.get("/api/works/custom", async (_req, res) => {
@@ -774,48 +780,44 @@ app.put("/api/teacher/map-config", teacherAuthMiddleware, (req, res) => {
   }
 });
 
-app.post("/api/teacher/map-config/:regionId/infographic", teacherAuthMiddleware, (req, res) => {
+app.post("/api/teacher/map-config/:regionId/infographic", teacherAuthMiddleware, async (req, res) => {
   try {
-    const { url, config } = saveMapInfographic(req.params.regionId, req.body?.imageBase64);
+    const { url, config } = await saveMapInfographic(req.params.regionId, req.body?.imageBase64);
     res.json({ ok: true, infographicUrl: url, regions: config.regions });
   } catch (e) {
     if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Rasm formati noto'g'ri" });
     if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm 6 MB dan katta" });
     if (e.message === "INVALID_REGION") return res.status(400).json({ error: "Viloyat topilmadi" });
-    console.error(e);
-    res.status(500).json({ error: "Rasm saqlanmadi" });
+    handleSupabaseError(res, e, "Rasm saqlanmadi");
   }
 });
 
-app.delete("/api/teacher/map-config/:regionId/infographic", teacherAuthMiddleware, (req, res) => {
+app.delete("/api/teacher/map-config/:regionId/infographic", teacherAuthMiddleware, async (req, res) => {
   try {
-    const config = removeMapInfographic(req.params.regionId);
+    const config = await removeMapInfographic(req.params.regionId);
     res.json({ ok: true, regions: config.regions });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "O'chirib bo'lmadi" });
+    handleSupabaseError(res, e, "O'chirib bo'lmadi");
   }
 });
 
-app.post("/api/teacher/map-config/background", teacherAuthMiddleware, (req, res) => {
+app.post("/api/teacher/map-config/background", teacherAuthMiddleware, async (req, res) => {
   try {
-    const { url, config } = saveMapBackground(req.body?.imageBase64);
+    const { url, config } = await saveMapBackground(req.body?.imageBase64);
     res.json({ ok: true, backgroundUrl: url, regions: config.regions });
   } catch (e) {
     if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Rasm formati noto'g'ri" });
     if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm 6 MB dan katta" });
-    console.error(e);
-    res.status(500).json({ error: "Fon rasmi saqlanmadi" });
+    handleSupabaseError(res, e, "Fon rasmi saqlanmadi");
   }
 });
 
-app.delete("/api/teacher/map-config/background", teacherAuthMiddleware, (_req, res) => {
+app.delete("/api/teacher/map-config/background", teacherAuthMiddleware, async (_req, res) => {
   try {
-    const config = removeMapBackground();
+    const config = await removeMapBackground();
     res.json({ ok: true, regions: config.regions, backgroundUrl: config.backgroundUrl });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Fon rasmini o'chirib bo'lmadi" });
+    handleSupabaseError(res, e, "Fon rasmini o'chirib bo'lmadi");
   }
 });
 
@@ -925,7 +927,7 @@ app.post("/api/ijod", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Rasm yuklang (JPEG yoki PNG)" });
     }
 
-    const imageUrl = await saveOptimizedMedia("ijod", `${user.id}_${Date.now()}`, imageBase64, {
+    const imageUrl = await saveOptimizedStorageMedia("ijod", `${user.id}_${Date.now()}`, imageBase64, {
       maxBytes: 5 * 1024 * 1024,
       maxWidth: 1200,
       maxHeight: 1200,
@@ -946,18 +948,21 @@ app.post("/api/ijod", authMiddleware, async (req, res) => {
   } catch (e) {
     if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Rasm yuklang (JPEG yoki PNG)" });
     if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm hajmi juda katta (max ~5MB)" });
-    console.error(e);
-    res.status(500).json({ error: "Rasm yuklashda xatolik" });
+    handleSupabaseError(res, e, "Rasm yuklashda xatolik");
   }
 });
 
-app.delete("/api/ijod/:id", authMiddleware, (req, res) => {
-  const user = resolveStudentUser(req.user);
-  if (!user) return res.status(401).json({ error: "Sessiya eskirgan — qayta kiring" });
-  const removed = deleteIjod(req.params.id, user.id);
-  if (!removed) return res.status(404).json({ error: "Topilmadi yoki o'chirish huquqi yo'q" });
-  if (removed.image_url) deleteMediaByUrl(removed.image_url);
-  res.json({ ok: true });
+app.delete("/api/ijod/:id", authMiddleware, async (req, res) => {
+  try {
+    const user = resolveStudentUser(req.user);
+    if (!user) return res.status(401).json({ error: "Sessiya eskirgan — qayta kiring" });
+    const removed = deleteIjod(req.params.id, user.id);
+    if (!removed) return res.status(404).json({ error: "Topilmadi yoki o'chirish huquqi yo'q" });
+    if (removed.image_url) await deleteStorageMediaByUrl(removed.image_url);
+    res.json({ ok: true });
+  } catch (e) {
+    handleSupabaseError(res, e, "Rasmni o'chirishda xatolik");
+  }
 });
 
 app.put("/api/ijod/:id/rate", authMiddleware, (req, res) => {
@@ -1022,3 +1027,10 @@ app.get("*", (req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Qadriyatlar Kaledaskopi: http://localhost:${PORT}`);
 });
+
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, async () => {
+    await flushJsonStoreWrites();
+    process.exit(0);
+  });
+}

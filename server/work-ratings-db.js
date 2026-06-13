@@ -1,31 +1,18 @@
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "data", "work-ratings.json");
-
-function ensureFile() {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ works: {} }, null, 2));
-  }
-}
+registerJsonStore("work-ratings", DATA_FILE, { works: {} });
 
 function readDb() {
-  ensureFile();
-  try {
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
-    return raw.works && typeof raw.works === "object" ? raw.works : {};
-  } catch {
-    return {};
-  }
+  const raw = readJsonStore("work-ratings");
+  return raw.works && typeof raw.works === "object" ? raw.works : {};
 }
 
 function writeDb(works) {
-  ensureFile();
-  fs.writeFileSync(DATA_FILE, JSON.stringify({ works }, null, 2));
+  writeJsonStore("work-ratings", { works });
 }
 
 function statsForRatings(ratings, userId = null) {

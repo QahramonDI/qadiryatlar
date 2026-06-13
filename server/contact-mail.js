@@ -1,20 +1,18 @@
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
+import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const inboxPath = path.join(__dirname, "data", "contact-messages.json");
+registerJsonStore("contact-messages", inboxPath, []);
 
 function loadInbox() {
-  try {
-    if (fs.existsSync(inboxPath)) return JSON.parse(fs.readFileSync(inboxPath, "utf8"));
-  } catch { /* ignore */ }
-  return [];
+  return readJsonStore("contact-messages");
 }
 
 function saveInbox(rows) {
-  fs.writeFileSync(inboxPath, JSON.stringify(rows, null, 2), "utf8");
+  writeJsonStore("contact-messages", rows);
 }
 
 function getSmtpConfig() {

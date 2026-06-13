@@ -1,26 +1,19 @@
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "data");
 const dbPath = path.join(dataDir, "students.json");
 
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+registerJsonStore("students", dbPath, { users: [], progress: [] });
 
 function loadDb() {
-  if (!fs.existsSync(dbPath)) {
-    return { users: [], progress: [] };
-  }
-  try {
-    return JSON.parse(fs.readFileSync(dbPath, "utf8"));
-  } catch {
-    return { users: [], progress: [] };
-  }
+  return readJsonStore("students");
 }
 
 function saveDb(db) {
-  fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), "utf8");
+  writeJsonStore("students", db);
 }
 
 function nextId(list) {

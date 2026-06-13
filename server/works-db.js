@@ -1,4 +1,4 @@
-import { saveOptimizedStorageMedia } from "./media-store.js";
+import { deleteStorageMediaByUrl, saveOptimizedStorageMedia } from "./media-store.js";
 import { getSupabaseAdmin } from "./supabase.js";
 
 function slugId(title) {
@@ -354,7 +354,9 @@ export async function updateWork(id, payload) {
     if (payload.regenerateTests) work.tests = generateTestsForWork(work);
     if (payload.regenerateCrossword) work.crossword = generateCrosswordForWork(work);
     if (hasNewWorkImage(payload)) {
+      const prevImageUrl = existing.imageUrl;
       work.imageUrl = await saveWorkImage(id, payload.imageBase64);
+      if (prevImageUrl && prevImageUrl !== work.imageUrl) await deleteStorageMediaByUrl(prevImageUrl);
     } else if (!work.imageUrl && existing.imageUrl) {
       work.imageUrl = existing.imageUrl;
     }
@@ -392,7 +394,9 @@ export async function updateWork(id, payload) {
     patch.crossword = generateCrosswordForWork({ id, ...prev, ...patch });
   }
   if (hasNewWorkImage(payload)) {
+    const prevImageUrl = prev.imageUrl;
     patch.imageUrl = await saveWorkImage(id, payload.imageBase64);
+    if (prevImageUrl && prevImageUrl !== patch.imageUrl) await deleteStorageMediaByUrl(prevImageUrl);
   } else if (prev.imageUrl) {
     patch.imageUrl = prev.imageUrl;
   } else if (patch.imageUrl === null) {
@@ -413,6 +417,7 @@ export async function deleteCustomWork(id) {
       const work = rowToWork(row);
       const { error } = await supabase.from("works").delete().eq("id", id);
       if (error) throw new Error(`Supabase works jadvalidan o'chirib bo'lmadi: ${error.message}`);
+      if (work.imageUrl) await deleteStorageMediaByUrl(work.imageUrl);
       return { removed: work, kind: "custom" };
     }
   }

@@ -1,25 +1,14 @@
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "data", "match-pairs.json");
-
-function ensureFile() {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(
-      DATA_FILE,
-      JSON.stringify({ pairs: [], pickCount: 5 }, null, 2)
-    );
-  }
-}
+registerJsonStore("match-pairs", DATA_FILE, { pairs: [], pickCount: 5 });
 
 function readDb() {
-  ensureFile();
   try {
-    const raw = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    const raw = readJsonStore("match-pairs");
     return {
       pairs: Array.isArray(raw.pairs) ? raw.pairs : [],
       pickCount: Math.min(10, Math.max(3, +raw.pickCount || 5)),
@@ -30,21 +19,13 @@ function readDb() {
 }
 
 function writeDb(data) {
-  ensureFile();
-  fs.writeFileSync(
-    DATA_FILE,
-    JSON.stringify(
-      {
-        pairs: (data.pairs || []).map((p) => ({
-          workId: String(p.workId || "").trim(),
-          valueId: String(p.valueId || "").trim(),
-        })).filter((p) => p.workId && p.valueId),
-        pickCount: Math.min(10, Math.max(3, +data.pickCount || 5)),
-      },
-      null,
-      2
-    )
-  );
+  writeJsonStore("match-pairs", {
+    pairs: (data.pairs || []).map((p) => ({
+      workId: String(p.workId || "").trim(),
+      valueId: String(p.valueId || "").trim(),
+    })).filter((p) => p.workId && p.valueId),
+    pickCount: Math.min(10, Math.max(3, +data.pickCount || 5)),
+  });
 }
 
 export function getMatchConfigPublic() {
