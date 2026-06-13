@@ -4,27 +4,31 @@ import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.j
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "data", "custom-values.json");
-registerJsonStore("custom-values", DATA_FILE, { values: [], overrides: {}, hiddenIds: [] });
+function normalizeValuesDb(raw) {
+  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  return {
+    values: Array.isArray(data.values) ? data.values : [],
+    overrides: data.overrides && typeof data.overrides === "object" && !Array.isArray(data.overrides) ? data.overrides : {},
+    hiddenIds: Array.isArray(data.hiddenIds) ? data.hiddenIds : [],
+  };
+}
+
+registerJsonStore("custom-values", DATA_FILE, { values: [], overrides: {}, hiddenIds: [] }, normalizeValuesDb);
 
 function readDb() {
   try {
-    const raw = readJsonStore("custom-values");
-    return {
-      values: raw.values || [],
-      overrides: raw.overrides || {},
-      hiddenIds: raw.hiddenIds || [],
-    };
+    return normalizeValuesDb(readJsonStore("custom-values"));
   } catch {
     return { values: [], overrides: {}, hiddenIds: [] };
   }
 }
 
 function writeDb(data) {
-  writeJsonStore("custom-values", {
+  writeJsonStore("custom-values", normalizeValuesDb({
     values: data.values || [],
     overrides: data.overrides || {},
     hiddenIds: data.hiddenIds || [],
-  });
+  }));
 }
 
 function slugId(name) {

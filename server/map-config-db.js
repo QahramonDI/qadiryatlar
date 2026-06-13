@@ -3,7 +3,6 @@ import { DATA_DIR, deleteStorageMediaByUrl, saveOptimizedStorageMedia } from "./
 import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
 const DATA_FILE = path.join(DATA_DIR, "map-config.json");
-registerJsonStore("map-config", DATA_FILE, { regions: {} });
 
 const REGION_IDS = [
   "qoraqalpogiston", "xorazm", "navoiy", "buxoro", "qashqadaryo", "surxondaryo",
@@ -28,26 +27,33 @@ function normalizeRegionEntry(id, raw = {}) {
   return out;
 }
 
+function normalizeMapConfigDb(raw) {
+  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const regions = {};
+  const rawRegions = data.regions && typeof data.regions === "object" && !Array.isArray(data.regions)
+    ? data.regions
+    : {};
+  for (const [id, entry] of Object.entries(rawRegions)) {
+    if (!REGION_IDS.includes(id)) continue;
+    const norm = normalizeRegionEntry(id, entry);
+    if (Object.keys(norm).length) regions[id] = norm;
+  }
+  const backgroundUrl = data.backgroundUrl ? String(data.backgroundUrl).trim() : null;
+  return { regions, backgroundUrl: backgroundUrl || null };
+}
+
+registerJsonStore("map-config", DATA_FILE, { regions: {} }, normalizeMapConfigDb);
+
 function readDb() {
   try {
-    const raw = readJsonStore("map-config");
-    const regions = {};
-    for (const [id, entry] of Object.entries(raw.regions || {})) {
-      if (!REGION_IDS.includes(id)) continue;
-      const norm = normalizeRegionEntry(id, entry);
-      if (Object.keys(norm).length) regions[id] = norm;
-    }
-    const backgroundUrl = raw.backgroundUrl ? String(raw.backgroundUrl).trim() : null;
-    return { regions, backgroundUrl: backgroundUrl || null };
+    return normalizeMapConfigDb(readJsonStore("map-config"));
   } catch {
     return { regions: {}, backgroundUrl: null };
   }
 }
 
 function writeDb(data) {
-  const payload = { regions: data.regions || {} };
-  if (data.backgroundUrl) payload.backgroundUrl = data.backgroundUrl;
-  writeJsonStore("map-config", payload);
+  writeJsonStore("map-config", normalizeMapConfigDb(data));
 }
 
 export function getMapConfigPublic() {

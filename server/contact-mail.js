@@ -5,7 +5,7 @@ import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.j
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const inboxPath = path.join(__dirname, "data", "contact-messages.json");
-registerJsonStore("contact-messages", inboxPath, []);
+registerJsonStore("contact-messages", inboxPath, [], (raw) => Array.isArray(raw) ? raw : []);
 
 function loadInbox() {
   return readJsonStore("contact-messages");

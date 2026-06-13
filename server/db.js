@@ -6,23 +6,36 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "data");
 const dbPath = path.join(dataDir, "students.json");
 
-registerJsonStore("students", dbPath, { users: [], progress: [] });
+function normalizeStudentsDb(raw) {
+  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  return {
+    users: Array.isArray(data.users) ? data.users.filter((u) => u && typeof u === "object") : [],
+    progress: Array.isArray(data.progress) ? data.progress.filter((p) => p && typeof p === "object") : [],
+  };
+}
+
+registerJsonStore("students", dbPath, { users: [], progress: [] }, normalizeStudentsDb);
 
 function loadDb() {
-  return readJsonStore("students");
+  return normalizeStudentsDb(readJsonStore("students"));
 }
 
 function saveDb(db) {
-  writeJsonStore("students", db);
+  writeJsonStore("students", normalizeStudentsDb(db));
 }
 
 function nextId(list) {
-  return list.length ? Math.max(...list.map((x) => x.id)) + 1 : 1;
+  const ids = list.map((x) => Number(x?.id)).filter(Number.isFinite);
+  return ids.length ? Math.max(...ids) + 1 : 1;
+}
+
+function sameUsername(row, username) {
+  return String(row?.username || "").toLowerCase() === String(username || "").toLowerCase();
 }
 
 export function createUser({ username, passwordHash, passwordNote, name, grade, avatar, avatarImg }) {
   const db = loadDb();
-  if (db.users.some((u) => u.username.toLowerCase() === username.toLowerCase())) {
+  if (db.users.some((u) => sameUsername(u, username))) {
     throw new Error("USER_EXISTS");
   }
   const id = nextId(db.users);
@@ -63,7 +76,7 @@ export function createUser({ username, passwordHash, passwordNote, name, grade, 
 
 export function findUserByUsername(username) {
   const db = loadDb();
-  return db.users.find((u) => u.username.toLowerCase() === username.toLowerCase()) || null;
+  return db.users.find((u) => sameUsername(u, username)) || null;
 }
 
 export function findUserById(id) {
@@ -224,7 +237,7 @@ export function adminUpdateStudent(userId, { name, username, passwordHash, passw
   if (username != null) {
     const un = String(username).trim().toLowerCase();
     if (!/^[a-z0-9_.]{3,20}$/.test(un)) throw new Error("INVALID_USERNAME");
-    if (db.users.some((u) => u.id !== user.id && u.username.toLowerCase() === un)) {
+    if (db.users.some((u) => u.id !== user.id && sameUsername(u, un))) {
       throw new Error("USER_EXISTS");
     }
     user.username = un;

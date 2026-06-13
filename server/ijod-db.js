@@ -3,7 +3,12 @@ import { DATA_DIR } from "./media-store.js";
 import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.js";
 
 const DATA_FILE = path.join(DATA_DIR, "ijod.json");
-registerJsonStore("ijod", DATA_FILE, { items: [] });
+function normalizeIjodDb(raw) {
+  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  return { items: Array.isArray(data.items) ? data.items.filter((i) => i && typeof i === "object") : [] };
+}
+
+registerJsonStore("ijod", DATA_FILE, { items: [] }, normalizeIjodDb);
 
 export const IJOD_MAX_ITEMS_PER_USER = 100;
 export const IJOD_MAX_BYTES_PER_USER = 100 * 1024 * 1024;
@@ -11,11 +16,11 @@ export const IJOD_COUNT_LIMIT_MESSAGE = "Maksimal 100 ta rasm yuklash mumkin.";
 export const IJOD_STORAGE_LIMIT_MESSAGE = "Sizning ijodiy ishlaringiz uchun ajratilgan 100 MB joy to‘lib bo‘lgan.";
 
 function readDb() {
-  return readJsonStore("ijod");
+  return normalizeIjodDb(readJsonStore("ijod"));
 }
 
 function writeDb(data) {
-  writeJsonStore("ijod", data);
+  writeJsonStore("ijod", normalizeIjodDb(data));
 }
 
 function ratingStats(item, userId = null) {

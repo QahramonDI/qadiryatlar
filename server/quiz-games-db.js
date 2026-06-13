@@ -10,7 +10,6 @@ const DEFAULTS = {
   author: { pickCount: 8, items: [] },
   truefalse: { pickCount: 10, items: [] },
 };
-registerJsonStore("quiz-games", DATA_FILE, DEFAULTS);
 
 function clampPick(n, min = 3, max = 12) {
   return Math.min(max, Math.max(min, +n || min));
@@ -53,25 +52,27 @@ function sanitizeSection(section, kind) {
   return { pickCount, items };
 }
 
+function normalizeQuizGamesDb(raw) {
+  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  return {
+    guess: sanitizeSection(data.guess, "guess"),
+    author: sanitizeSection(data.author, "author"),
+    truefalse: sanitizeSection(data.truefalse, "truefalse"),
+  };
+}
+
+registerJsonStore("quiz-games", DATA_FILE, DEFAULTS, normalizeQuizGamesDb);
+
 function readDb() {
   try {
-    const raw = readJsonStore("quiz-games");
-    return {
-      guess: sanitizeSection(raw.guess, "guess"),
-      author: sanitizeSection(raw.author, "author"),
-      truefalse: sanitizeSection(raw.truefalse, "truefalse"),
-    };
+    return normalizeQuizGamesDb(readJsonStore("quiz-games"));
   } catch {
     return structuredClone(DEFAULTS);
   }
 }
 
 function writeDb(payload) {
-  const data = {
-    guess: sanitizeSection(payload?.guess, "guess"),
-    author: sanitizeSection(payload?.author, "author"),
-    truefalse: sanitizeSection(payload?.truefalse, "truefalse"),
-  };
+  const data = normalizeQuizGamesDb(payload);
   writeJsonStore("quiz-games", data);
   return data;
 }

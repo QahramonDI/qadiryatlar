@@ -4,15 +4,22 @@ import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.j
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "data", "work-ratings.json");
-registerJsonStore("work-ratings", DATA_FILE, { works: {} });
+function normalizeWorkRatingsDb(raw) {
+  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  return {
+    works: data.works && typeof data.works === "object" && !Array.isArray(data.works) ? data.works : {},
+  };
+}
+
+registerJsonStore("work-ratings", DATA_FILE, { works: {} }, normalizeWorkRatingsDb);
 
 function readDb() {
-  const raw = readJsonStore("work-ratings");
+  const raw = normalizeWorkRatingsDb(readJsonStore("work-ratings"));
   return raw.works && typeof raw.works === "object" ? raw.works : {};
 }
 
 function writeDb(works) {
-  writeJsonStore("work-ratings", { works });
+  writeJsonStore("work-ratings", normalizeWorkRatingsDb({ works }));
 }
 
 function statsForRatings(ratings, userId = null) {

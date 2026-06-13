@@ -9,23 +9,33 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "data");
 const teachersPath = path.join(dataDir, "teachers.json");
 
-registerJsonStore("teachers", teachersPath, { teachers: [] });
+function normalizeTeachersDb(raw) {
+  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  return { teachers: Array.isArray(data.teachers) ? data.teachers.filter((t) => t && typeof t === "object") : [] };
+}
+
+registerJsonStore("teachers", teachersPath, { teachers: [] }, normalizeTeachersDb);
 
 function loadTeachersDb() {
-  return readJsonStore("teachers");
+  return normalizeTeachersDb(readJsonStore("teachers"));
 }
 
 function saveTeachersDb(db) {
-  writeJsonStore("teachers", db);
+  writeJsonStore("teachers", normalizeTeachersDb(db));
 }
 
 function nextId(list) {
-  return list.length ? Math.max(...list.map((x) => x.id)) + 1 : 1;
+  const ids = list.map((x) => Number(x?.id)).filter(Number.isFinite);
+  return ids.length ? Math.max(...ids) + 1 : 1;
+}
+
+function sameUsername(row, username) {
+  return String(row?.username || "").toLowerCase() === String(username || "").toLowerCase();
 }
 
 export function ensureBootstrapAdmin() {
   const db = loadTeachersDb();
-  let admin = db.teachers.find((t) => t.username.toLowerCase() === "madina");
+  let admin = db.teachers.find((t) => sameUsername(t, "madina"));
   let changed = false;
   if (!admin) {
     admin = {
@@ -59,7 +69,7 @@ export function ensureBootstrapAdmin() {
 
 export function createTeacher({ username, passwordHash, name, school, isAdmin = false }) {
   const db = loadTeachersDb();
-  if (db.teachers.some((t) => t.username.toLowerCase() === username.toLowerCase())) {
+  if (db.teachers.some((t) => sameUsername(t, username))) {
     throw new Error("TEACHER_EXISTS");
   }
   const id = nextId(db.teachers);
@@ -79,7 +89,7 @@ export function createTeacher({ username, passwordHash, name, school, isAdmin = 
 
 export function findTeacherByUsername(username) {
   const db = loadTeachersDb();
-  return db.teachers.find((t) => t.username.toLowerCase() === username.toLowerCase()) || null;
+  return db.teachers.find((t) => sameUsername(t, username)) || null;
 }
 
 export function findTeacherById(id) {

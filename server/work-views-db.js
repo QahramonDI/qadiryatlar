@@ -4,15 +4,22 @@ import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.j
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "data", "work-views.json");
-registerJsonStore("work-views", DATA_FILE, { counts: {} });
+function normalizeWorkViewsDb(raw) {
+  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  return {
+    counts: data.counts && typeof data.counts === "object" && !Array.isArray(data.counts) ? data.counts : {},
+  };
+}
+
+registerJsonStore("work-views", DATA_FILE, { counts: {} }, normalizeWorkViewsDb);
 
 function readDb() {
-  const raw = readJsonStore("work-views");
+  const raw = normalizeWorkViewsDb(readJsonStore("work-views"));
   return raw.counts && typeof raw.counts === "object" ? raw.counts : {};
 }
 
 function writeDb(counts) {
-  writeJsonStore("work-views", { counts });
+  writeJsonStore("work-views", normalizeWorkViewsDb({ counts }));
 }
 
 export function getAllViewCounts() {

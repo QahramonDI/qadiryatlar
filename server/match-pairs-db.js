@@ -4,28 +4,32 @@ import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.j
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "data", "match-pairs.json");
-registerJsonStore("match-pairs", DATA_FILE, { pairs: [], pickCount: 5 });
+function normalizeMatchPairsDb(raw) {
+  const data = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  return {
+    pairs: Array.isArray(data.pairs) ? data.pairs : [],
+    pickCount: Math.min(10, Math.max(3, +data.pickCount || 5)),
+  };
+}
+
+registerJsonStore("match-pairs", DATA_FILE, { pairs: [], pickCount: 5 }, normalizeMatchPairsDb);
 
 function readDb() {
   try {
-    const raw = readJsonStore("match-pairs");
-    return {
-      pairs: Array.isArray(raw.pairs) ? raw.pairs : [],
-      pickCount: Math.min(10, Math.max(3, +raw.pickCount || 5)),
-    };
+    return normalizeMatchPairsDb(readJsonStore("match-pairs"));
   } catch {
     return { pairs: [], pickCount: 5 };
   }
 }
 
 function writeDb(data) {
-  writeJsonStore("match-pairs", {
+  writeJsonStore("match-pairs", normalizeMatchPairsDb({
     pairs: (data.pairs || []).map((p) => ({
       workId: String(p.workId || "").trim(),
       valueId: String(p.valueId || "").trim(),
     })).filter((p) => p.workId && p.valueId),
     pickCount: Math.min(10, Math.max(3, +data.pickCount || 5)),
-  });
+  }));
 }
 
 export function getMatchConfigPublic() {
