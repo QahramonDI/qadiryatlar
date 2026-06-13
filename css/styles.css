@@ -3870,7 +3870,11 @@ img { max-width: 100%; display: block; }
 .admin-test-opt-row .admin-test-opt { flex: 1; min-width: 0; }
 .admin-test-correct-wrap { font-size: 0.82rem; font-weight: 700; }
 .admin-test-correct { margin-left: 6px; border: 2px solid #f0e2cf; border-radius: 8px; padding: 4px 8px; }
-.admin-students-table { min-width: 720px; }
+.admin-students-table { min-width: 820px; }
+.admin-ijod-usage { white-space: nowrap; font-weight: 800; color: var(--brown); }
+.ijod-quota-note { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; }
+.ijod-quota-note b { color: var(--brown); }
+.ijod-quota-note.ijod-quota-full { color: #a63a3a; font-weight: 800; }
 
 @media (max-width: 900px) {
   .admin-stats-row { grid-template-columns: repeat(2, 1fr); }

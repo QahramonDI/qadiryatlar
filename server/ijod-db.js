@@ -5,6 +5,11 @@ import { readJsonStore, registerJsonStore, writeJsonStore } from "./json-store.j
 const DATA_FILE = path.join(DATA_DIR, "ijod.json");
 registerJsonStore("ijod", DATA_FILE, { items: [] });
 
+export const IJOD_MAX_ITEMS_PER_USER = 100;
+export const IJOD_MAX_BYTES_PER_USER = 100 * 1024 * 1024;
+export const IJOD_COUNT_LIMIT_MESSAGE = "Maksimal 100 ta rasm yuklash mumkin.";
+export const IJOD_STORAGE_LIMIT_MESSAGE = "Sizning ijodiy ishlaringiz uchun ajratilgan 100 MB joy to‘lib bo‘lgan.";
+
 function readDb() {
   return readJsonStore("ijod");
 }
@@ -31,6 +36,73 @@ function ratingStats(item, userId = null) {
 function enrichItem(item, userId = null) {
   const { ratings, ...rest } = item;
   return { ...rest, ...ratingStats(item, userId) };
+}
+
+function itemBytes(item) {
+  const n = Number(item?.image_bytes ?? item?.imageBytes ?? item?.size_bytes ?? 0);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
+}
+
+export function getIjodUsageByUserId(userId) {
+  const uid = Number(userId);
+  const items = (readDb().items || []).filter((i) => Number(i.user_id) === uid);
+  const count = items.length;
+  const usedBytes = items.reduce((sum, item) => sum + itemBytes(item), 0);
+  return {
+    count,
+    maxItems: IJOD_MAX_ITEMS_PER_USER,
+    usedBytes,
+    maxBytes: IJOD_MAX_BYTES_PER_USER,
+    usedMb: Math.round((usedBytes / 1024 / 1024) * 10) / 10,
+    maxMb: Math.round(IJOD_MAX_BYTES_PER_USER / 1024 / 1024),
+    remainingItems: Math.max(0, IJOD_MAX_ITEMS_PER_USER - count),
+    remainingBytes: Math.max(0, IJOD_MAX_BYTES_PER_USER - usedBytes),
+  };
+}
+
+export function getIjodUsageByUserIds(userIds = []) {
+  const wanted = new Set(userIds.map((id) => String(id)));
+  const out = {};
+  for (const id of wanted) {
+    out[id] = {
+      count: 0,
+      maxItems: IJOD_MAX_ITEMS_PER_USER,
+      usedBytes: 0,
+      maxBytes: IJOD_MAX_BYTES_PER_USER,
+      usedMb: 0,
+      maxMb: Math.round(IJOD_MAX_BYTES_PER_USER / 1024 / 1024),
+      remainingItems: IJOD_MAX_ITEMS_PER_USER,
+      remainingBytes: IJOD_MAX_BYTES_PER_USER,
+    };
+  }
+  for (const item of readDb().items || []) {
+    const key = String(item.user_id);
+    if (!wanted.has(key)) continue;
+    out[key].count += 1;
+    out[key].usedBytes += itemBytes(item);
+  }
+  for (const usage of Object.values(out)) {
+    usage.usedMb = Math.round((usage.usedBytes / 1024 / 1024) * 10) / 10;
+    usage.remainingItems = Math.max(0, IJOD_MAX_ITEMS_PER_USER - usage.count);
+    usage.remainingBytes = Math.max(0, IJOD_MAX_BYTES_PER_USER - usage.usedBytes);
+  }
+  return out;
+}
+
+export function assertIjodQuota(userId, nextImageBytes = 0) {
+  const usage = getIjodUsageByUserId(userId);
+  if (usage.count >= IJOD_MAX_ITEMS_PER_USER) {
+    const err = new Error("IJOD_COUNT_LIMIT");
+    err.publicMessage = IJOD_COUNT_LIMIT_MESSAGE;
+    throw err;
+  }
+  const incoming = Math.max(0, Math.round(Number(nextImageBytes) || 0));
+  if (usage.usedBytes >= IJOD_MAX_BYTES_PER_USER || usage.usedBytes + incoming > IJOD_MAX_BYTES_PER_USER) {
+    const err = new Error("IJOD_STORAGE_LIMIT");
+    err.publicMessage = IJOD_STORAGE_LIMIT_MESSAGE;
+    throw err;
+  }
+  return usage;
 }
 
 export function listIjod({ grade, valueId, sortBy = "newest", userId = null, limit = 200 } = {}) {

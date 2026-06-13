@@ -484,6 +484,21 @@ function fileToAvatar(file, cb) {
   reader.readAsDataURL(file);
 }
 
+const IJOD_MAX_ITEMS = 100;
+const IJOD_MAX_BYTES = 100 * 1024 * 1024;
+const IJOD_COUNT_LIMIT_MSG = "Maksimal 100 ta rasm yuklash mumkin.";
+const IJOD_STORAGE_LIMIT_MSG = "Sizning ijodiy ishlaringiz uchun ajratilgan 100 MB joy to‘lib bo‘lgan.";
+
+function mbFromBytes(bytes) {
+  const n = Number(bytes) || 0;
+  return Math.round((n / 1024 / 1024) * 10) / 10;
+}
+
+function dataUrlBytes(dataUrl) {
+  const b64 = String(dataUrl || "").split(",")[1] || "";
+  return Math.floor((b64.length * 3) / 4);
+}
+
 function fileToIjodImage(file, cb) {
   if (!file || !file.type.startsWith("image/")) {
     toast("Iltimos, rasm fayl tanlang.", "err");
@@ -4786,7 +4801,7 @@ function renderAdminStudentsTable(students, isAdmin) {
   }
   if (empty) empty.hidden = true;
   table.innerHTML = `<thead><tr>
-    <th>O'quvchi</th><th>Login</th><th>Parol</th><th>Sinf</th><th>XP</th><th>⭐</th><th>Asar</th><th>Rasm</th><th>Amallar</th>
+    <th>O'quvchi</th><th>Login</th><th>Parol</th><th>Sinf</th><th>XP</th><th>⭐</th><th>Asar</th><th>Rasm</th><th>Ijod joyi</th><th>Amallar</th>
   </tr></thead><tbody>${students.map((s) => `
     <tr data-stu-id="${s.id}">
       <td class="admin-stu-cell">${renderAdminStudentNameCell(s)}</td>
@@ -4797,6 +4812,7 @@ function renderAdminStudentsTable(students, isAdmin) {
       <td>${s.stars ?? 0}</td>
       <td>${s.readWorks ?? 0}</td>
       <td>${s.ijodCount ?? 0}</td>
+      <td><span class="admin-ijod-usage">${mbFromBytes(s.ijodUsage?.usedBytes)} / ${mbFromBytes(s.ijodUsage?.maxBytes || IJOD_MAX_BYTES)} MB</span></td>
       <td class="admin-actions">
         <button type="button" class="ghost-btn admin-mini-btn" data-stu-edit="${s.id}" title="Tahrirlash"><i class="fa-solid fa-pen"></i></button>
         <button type="button" class="ghost-btn admin-mini-btn admin-warn-btn" data-stu-warn="${s.id}" title="Ogohlantirish yuborish"><i class="fa-solid fa-triangle-exclamation"></i></button>
@@ -6135,9 +6151,10 @@ function openIjodUploadModal() {
         <div class="ijod-dropzone-inner" id="ijodDropPreview">
           <i class="fa-solid fa-cloud-arrow-up"></i>
           <b>Rasmni tanlang yoki bu yerga tashlang</b>
-          <small>JPEG, PNG · max ~5MB</small>
+          <small>JPEG, PNG, WebP · har bir rasm max ~5MB</small>
         </div>
       </label>
+      <p class="muted ijod-quota-note" id="ijodQuotaNote"><i class="fa-solid fa-database"></i> Limit tekshirilmoqda...</p>
       <label class="ijod-field-label">Sarlavha</label>
       <input type="text" class="auth-select ijod-input" id="ijodTitle" maxlength="80" placeholder="Masalan: Vatanim go'zali">
       <label class="ijod-field-label">Qaysi qadriyatga tegishli?</label>
@@ -6155,27 +6172,84 @@ function openIjodUploadModal() {
     </div>`);
 
   let previewData = null;
+  let selectedFileSize = 0;
+  let ijodQuota = null;
   const preview = $("#ijodDropPreview");
   const submitBtn = $("#ijodSubmitBtn");
   const fileInput = $("#ijodFileInput");
   const dropzone = $("#ijodDropzone");
   const valuePick = $("#ijodValuePick");
+  const quotaNote = $("#ijodQuotaNote");
   if (!preview || !submitBtn || !fileInput || !dropzone || !valuePick) return;
 
   function updateIjodSubmitState() {
-    const ready = !!previewData && !!valuePick.value;
+    const limitBlocked = ijodQuota && ijodQuota.count >= (ijodQuota.maxItems || IJOD_MAX_ITEMS);
+    const ready = !!previewData && !!valuePick.value && !limitBlocked;
     submitBtn.disabled = !ready;
   }
 
+  function renderIjodQuotaNote() {
+    if (!quotaNote) return;
+    if (!ijodQuota) {
+      quotaNote.innerHTML = `<i class="fa-solid fa-database"></i> Limit: ${IJOD_MAX_ITEMS} ta rasm, ${mbFromBytes(IJOD_MAX_BYTES)} MB jami.`;
+      return;
+    }
+    const maxItems = ijodQuota.maxItems || IJOD_MAX_ITEMS;
+    const maxBytes = ijodQuota.maxBytes || IJOD_MAX_BYTES;
+    quotaNote.innerHTML = `<i class="fa-solid fa-database"></i> Ishlatilgan: <b>${ijodQuota.count || 0}/${maxItems}</b> ta rasm · <b>${mbFromBytes(ijodQuota.usedBytes)} / ${mbFromBytes(maxBytes)} MB</b>`;
+    quotaNote.classList.toggle("ijod-quota-full", (ijodQuota.count || 0) >= maxItems || (ijodQuota.usedBytes || 0) >= maxBytes);
+  }
+
+  function canPickIjodFile(file, { checkBytes = true } = {}) {
+    if (!ijodQuota) return true;
+    const maxItems = ijodQuota.maxItems || IJOD_MAX_ITEMS;
+    const maxBytes = ijodQuota.maxBytes || IJOD_MAX_BYTES;
+    if ((ijodQuota.count || 0) >= maxItems) {
+      toast(IJOD_COUNT_LIMIT_MSG, "err");
+      return false;
+    }
+    if (checkBytes && (ijodQuota.usedBytes || 0) + (file?.size || 0) > maxBytes) {
+      toast(IJOD_STORAGE_LIMIT_MSG, "err");
+      return false;
+    }
+    return true;
+  }
+
   function setPreview(dataUrl) {
+    selectedFileSize = dataUrlBytes(dataUrl);
+    if (!canPickIjodFile({ size: selectedFileSize })) {
+      previewData = null;
+      selectedFileSize = 0;
+      preview.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i>
+        <b>Rasmni tanlang yoki bu yerga tashlang</b>
+        <small>JPEG, PNG, WebP · har bir rasm max ~5MB</small>`;
+      updateIjodSubmitState();
+      return;
+    }
     previewData = dataUrl;
     preview.innerHTML = `<img src="${dataUrl}" alt="Ko'rinish">`;
     updateIjodSubmitState();
   }
 
+  async function loadIjodQuota() {
+    if (!Api.online || !Api.token) {
+      renderIjodQuotaNote();
+      updateIjodSubmitState();
+      return;
+    }
+    const res = await IjodApi.quota();
+    if (res.ok) ijodQuota = res.quota;
+    else toast(res.msg, "err");
+    renderIjodQuotaNote();
+    updateIjodSubmitState();
+  }
+
   fileInput.addEventListener("change", () => {
     const f = fileInput.files?.[0];
-    if (f) fileToIjodImage(f, setPreview);
+    if (f && canPickIjodFile(f, { checkBytes: false })) {
+      selectedFileSize = f.size || 0;
+      fileToIjodImage(f, setPreview);
+    }
   });
 
   valuePick.addEventListener("change", updateIjodSubmitState);
@@ -6189,13 +6263,17 @@ function openIjodUploadModal() {
     e.preventDefault();
     dropzone.classList.remove("drag-over");
     const f = e.dataTransfer?.files?.[0];
-    if (f) fileToIjodImage(f, setPreview);
+    if (f && canPickIjodFile(f, { checkBytes: false })) {
+      selectedFileSize = f.size || 0;
+      fileToIjodImage(f, setPreview);
+    }
   });
 
   submitBtn.addEventListener("click", async () => {
     const valueId = valuePick.value;
     if (!previewData) { toast("Rasm tanlang", "err"); return; }
     if (!valueId) { toast("Qadriyatni tanlang", "err"); return; }
+    if (!canPickIjodFile({ size: selectedFileSize })) return;
 
     const prevHtml = submitBtn.innerHTML;
     submitBtn.disabled = true;
@@ -6216,6 +6294,7 @@ function openIjodUploadModal() {
         const res = await IjodApi.upload(payload);
         if (res.ok) {
           serverSaved = true;
+          if (res.item?.quota) ijodQuota = res.item.quota;
           IjodApi.saveLocal(
             IjodApi.getLocal().filter(
               (x) => !(x.title === payload.title && x.imageUrl === previewData)
@@ -6258,6 +6337,8 @@ function openIjodUploadModal() {
       updateIjodSubmitState();
     }
   });
+
+  loadIjodQuota();
 }
 
 function bindIjodCards(root) {

@@ -521,6 +521,13 @@ const IjodApi = {
     return res.json();
   },
 
+  async quota() {
+    const res = await fetch("/api/ijod/quota", { cache: "no-store", headers: Api.headers() });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, msg: data.error || "Limit ma'lumoti yuklanmadi" };
+    return { ok: true, quota: data };
+  },
+
   async upload(payload) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 45000);

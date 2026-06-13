@@ -33,7 +33,19 @@ import {
   ensureBootstrapAdmin,
   listTeachers,
 } from "./teachers-db.js";
-import { listIjod, createIjod, deleteIjod, rateIjod, listIjodAdmin, adminDeleteIjod, adminUpdateIjod, getIjodCountByUserId } from "./ijod-db.js";
+import {
+  assertIjodQuota,
+  getIjodUsageByUserId,
+  getIjodUsageByUserIds,
+  listIjod,
+  createIjod,
+  deleteIjod,
+  rateIjod,
+  listIjodAdmin,
+  adminDeleteIjod,
+  adminUpdateIjod,
+  getIjodCountByUserId,
+} from "./ijod-db.js";
 import { listCustomWorks, createCustomWork, deleteCustomWork, updateWork, getCatalogPublic, findCustomWork, getWorkOverride } from "./works-db.js";
 import { getAllViewCounts, incrementWorkView } from "./work-views-db.js";
 import { getAllWorkRatingStats, getWorkRatingStats, rateWork } from "./work-ratings-db.js";
@@ -60,6 +72,7 @@ import {
   resolveMediaFilePath,
   migrateLegacyUploads,
   saveOptimizedStorageMedia,
+  saveOptimizedStorageMediaWithMeta,
   optimizeImageBase64,
   deleteStorageMediaByUrl,
   MEDIA_ROOT,
@@ -384,11 +397,14 @@ app.get("/api/teacher/auth/me", teacherAuthMiddleware, (req, res) => {
 
 app.get("/api/teacher/dashboard", teacherAuthMiddleware, (_req, res) => {
   const ijodCounts = getIjodCountByUserId();
-  const students = getAllStudentsDetailed(200).map((s) => ({
+  const baseStudents = getAllStudentsDetailed(200);
+  const ijodUsage = getIjodUsageByUserIds(baseStudents.map((s) => s.id));
+  const students = baseStudents.map((s) => ({
     ...s,
     avatarImg: s.avatar_img,
     hasPendingWarning: s.hasPendingWarning,
     ijodCount: ijodCounts[s.id] || 0,
+    ijodUsage: ijodUsage[String(s.id)] || getIjodUsageByUserId(s.id),
   }));
   res.json({
     stats: getStudentsStats(),
@@ -865,9 +881,11 @@ app.post("/api/teacher/teachers", adminAuthMiddleware, async (req, res) => {
 /* Legacy endpoint */
 app.get("/api/teacher/students", teacherAuthMiddleware, (_req, res) => {
   const ijodCounts = getIjodCountByUserId();
+  const rows = getAllStudentsDetailed(100);
+  const ijodUsage = getIjodUsageByUserIds(rows.map((s) => s.id));
   res.json({
     stats: getStudentsStats(),
-    students: getAllStudentsDetailed(100).map((s) => ({
+    students: rows.map((s) => ({
       username: s.username,
       name: s.name,
       grade: s.grade,
@@ -876,6 +894,7 @@ app.get("/api/teacher/students", teacherAuthMiddleware, (_req, res) => {
       avatarImg: s.avatar_img,
       stars: s.stars,
       ijodCount: ijodCounts[s.id] || 0,
+      ijodUsage: ijodUsage[String(s.id)] || getIjodUsageByUserId(s.id),
     })),
   });
 });
@@ -908,7 +927,14 @@ app.get("/api/ijod", (req, res) => {
   res.json(listIjod({ grade, valueId, sortBy, userId: user?.id ?? null }));
 });
 
+app.get("/api/ijod/quota", authMiddleware, (req, res) => {
+  const user = resolveStudentUser(req.user);
+  if (!user) return res.status(401).json({ error: "Sessiya eskirgan — qayta kiring" });
+  res.json(getIjodUsageByUserId(user.id));
+});
+
 app.post("/api/ijod", authMiddleware, async (req, res) => {
+  let uploadedImage = null;
   try {
     const user = resolveStudentUser(req.user);
     if (!user) {
@@ -927,12 +953,21 @@ app.post("/api/ijod", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Rasm yuklang (JPEG yoki PNG)" });
     }
 
-    const imageUrl = await saveOptimizedStorageMedia("ijod", `${user.id}_${Date.now()}`, imageBase64, {
+    assertIjodQuota(user.id, 0);
+
+    uploadedImage = await saveOptimizedStorageMediaWithMeta("ijod", `${user.id}_${Date.now()}`, imageBase64, {
       maxBytes: 5 * 1024 * 1024,
       maxWidth: 1200,
       maxHeight: 1200,
       quality: 78,
     });
+    try {
+      assertIjodQuota(user.id, uploadedImage.sizeBytes);
+    } catch (quotaError) {
+      await deleteStorageMediaByUrl(uploadedImage.url);
+      uploadedImage = null;
+      throw quotaError;
+    }
 
     const item = createIjod({
       user_id: user.id,
@@ -942,10 +977,16 @@ app.post("/api/ijod", authMiddleware, async (req, res) => {
       title,
       description,
       value_id: valueId,
-      image_url: imageUrl,
+      image_url: uploadedImage.url,
+      image_bytes: uploadedImage.sizeBytes,
     });
-    res.json(item);
+    uploadedImage = null;
+    res.json({ ...item, quota: getIjodUsageByUserId(user.id) });
   } catch (e) {
+    if (uploadedImage?.url) await deleteStorageMediaByUrl(uploadedImage.url);
+    if (e.message === "IJOD_COUNT_LIMIT" || e.message === "IJOD_STORAGE_LIMIT") {
+      return res.status(400).json({ error: e.publicMessage });
+    }
     if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Rasm yuklang (JPEG yoki PNG)" });
     if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Rasm hajmi juda katta (max ~5MB)" });
     handleSupabaseError(res, e, "Rasm yuklashda xatolik");

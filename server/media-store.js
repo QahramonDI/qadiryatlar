@@ -126,6 +126,16 @@ export async function saveOptimizedMedia(category, basename, imageBase64, option
 
 export async function saveOptimizedStorageMedia(category, basename, imageBase64, options = {}) {
   const { buf, ext } = await optimizeImageBase64(imageBase64, options);
+  return uploadStorageMediaBuffer(category, basename, buf, ext);
+}
+
+export async function saveOptimizedStorageMediaWithMeta(category, basename, imageBase64, options = {}) {
+  const { buf, ext } = await optimizeImageBase64(imageBase64, options);
+  const url = await uploadStorageMediaBuffer(category, basename, buf, ext);
+  return { url, sizeBytes: buf.length, ext };
+}
+
+async function uploadStorageMediaBuffer(category, basename, buf, ext) {
   const safeCategory = String(category).replace(/[^a-zA-Z0-9_-]/g, "") || "media";
   const safeBase = String(basename).replace(/[^a-zA-Z0-9_-]/g, "") || "image";
   const objectPath = `${safeCategory}/${safeBase}.${ext}`;
