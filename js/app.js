@@ -1018,8 +1018,6 @@ function bindHomeMapRegions() {
 
 function renderHomeRegionPanel(r) {
   const v = getValueById(r.value);
-  const work = r.workId ? getWorkById(r.workId) : null;
-  const visited = Store.data.visitedRegions.some((id) => normalizeRegionId(id) === r.id);
   const infoSrc = regionInfographicSrc(r.id);
   const hasCustomInfo = !!infoSrc;
 
@@ -1037,14 +1035,6 @@ function renderHomeRegionPanel(r) {
           </figcaption>
         </div>
       </figure>
-      <div class="uz-region-panel-foot">
-        ${visited ? `<span class="uz-passport-badge"><i class="fa-solid fa-check"></i> Tashrif</span>` : ""}
-        <div class="uz-region-panel-actions">
-          <button type="button" class="solid-btn uz-passport-open" data-region="${esc(r.id)}"><i class="fa-solid fa-compass"></i> Sayohatni boshlash</button>
-          ${work ? `<button type="button" class="ghost-btn uz-passport-work" data-work="${esc(work.id)}"><i class="fa-solid fa-book-open"></i> Asarni o'qish</button>` : ""}
-          <button type="button" class="ghost-btn uz-passport-value" data-value="${esc(r.value)}"><i class="fa-solid fa-seedling"></i> Qadriyatni o'rganish</button>
-        </div>
-      </div>
     </div>`;
 }
 
@@ -1074,13 +1064,6 @@ function selectHomeRegion(id, opts = {}) {
       infoImg.addEventListener("error", () => info.classList.add("is-placeholder"));
       if (infoImg.complete) syncInfoState();
     }
-    body.querySelector(".uz-passport-open")?.addEventListener("click", () => openRegion(r.id));
-    body.querySelector(".uz-passport-work")?.addEventListener("click", (e) => {
-      openWorkModal(e.currentTarget.dataset.work);
-    });
-    body.querySelector(".uz-passport-value")?.addEventListener("click", (e) => {
-      openValueLesson(e.currentTarget.dataset.value);
-    });
   }
 
   if (!opts.silent) {
@@ -4711,7 +4694,7 @@ function mergeWorkPatch(base, patch) {
     questions: patch.questions?.length ? patch.questions : base.questions,
     illustration: phTitle && patch.illustration?.emoji === "📖" ? base.illustration : (patch.illustration || base.illustration),
     keywords: patch.keywords?.length ? patch.keywords : base.keywords,
-    imageUrl: patch.imageUrl ?? base.imageUrl ?? null,
+    imageUrl: patch.imageUrl ? patch.imageUrl : (base.imageUrl ?? null),
   };
 }
 
@@ -4995,6 +4978,8 @@ function closeAdminWorkEditor() {
   if (modal) modal.hidden = true;
   adminWorkEditId = null;
   adminWorkEditImageBase64 = null;
+  const fileInput = $("#adminWorkEditImage");
+  if (fileInput) fileInput.value = "";
 }
 
 function openAdminWorkEditor(workId) {
@@ -5002,6 +4987,8 @@ function openAdminWorkEditor(workId) {
   if (!w) return;
   adminWorkEditId = workId;
   adminWorkEditImageBase64 = null;
+  const fileInput = $("#adminWorkEditImage");
+  if (fileInput) fileInput.value = "";
   const modal = $("#adminWorkModal");
   if (!modal) return;
   $("#adminWorkEditTitle").value = w.title || "";
@@ -5038,6 +5025,9 @@ async function saveAdminWorkEditor() {
   if (adminWorkEditImageBase64) payload.imageBase64 = adminWorkEditImageBase64;
   const res = await TeacherApi.updateWork(adminWorkEditId, payload);
   if (!res.ok) { toast(res.msg, "err"); return; }
+  adminWorkEditImageBase64 = null;
+  const fileInput = $("#adminWorkEditImage");
+  if (fileInput) fileInput.value = "";
   await loadCustomWorksIntoCatalog();
   toast("Asar saqlandi", "win");
   closeAdminWorkEditor();

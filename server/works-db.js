@@ -265,10 +265,15 @@ export function updateWork(id, payload) {
   const customIdx = db.works.findIndex((w) => w.id === id);
 
   if (customIdx >= 0) {
-    let work = normalizeWork(payload, db.works[customIdx]);
+    const existing = db.works[customIdx];
+    let work = normalizeWork(payload, existing);
     if (payload.regenerateTests) work.tests = generateTestsForWork(work);
     if (payload.regenerateCrossword) work.crossword = generateCrosswordForWork(work);
-    if (payload.imageBase64) work.imageUrl = saveWorkImage(id, payload.imageBase64);
+    if (payload.imageBase64) {
+      work.imageUrl = saveWorkImage(id, payload.imageBase64);
+    } else if (!work.imageUrl && existing.imageUrl) {
+      work.imageUrl = existing.imageUrl;
+    }
     db.works[customIdx] = work;
     writeDb(db);
     return { work, kind: "custom" };
@@ -296,7 +301,6 @@ export function updateWork(id, payload) {
   setIfPresent("crossword", (v) => (Array.isArray(v) ? v : patch.crossword));
   setIfPresent("keywords", (v) => (Array.isArray(v) ? v.map(String) : patch.keywords));
   setIfPresent("illustration");
-  setIfPresent("imageUrl");
 
   if (payload.regenerateTests) {
     patch.tests = generateTestsForWork({ id, ...prev, ...patch });
@@ -306,6 +310,10 @@ export function updateWork(id, payload) {
   }
   if (payload.imageBase64) {
     patch.imageUrl = saveWorkImage(id, payload.imageBase64);
+  } else if (prev.imageUrl) {
+    patch.imageUrl = prev.imageUrl;
+  } else if (patch.imageUrl === null) {
+    delete patch.imageUrl;
   }
 
   db.overrides[id] = patch;

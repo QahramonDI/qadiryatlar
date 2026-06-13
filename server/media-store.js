@@ -70,13 +70,13 @@ function filePathToDataUrl(category, filename) {
 
 export function saveMedia(category, basename, imageBase64, maxBytes = 6 * 1024 * 1024) {
   const { buf, ext } = parseImageBase64(imageBase64, maxBytes);
+  // Asar rasmlari faqat JSON da (data URL) — diskka dublikat yozilmaydi
+  if (category === "works") return toDataUrl(buf, ext);
   const safeBase = String(basename).replace(/[^a-zA-Z0-9_-]/g, "") || "image";
   const filename = `${safeBase}.${ext}`;
   const dir = path.join(MEDIA_ROOT, category);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, filename), buf);
-  // Asar rasmlari to'g'ridan-to'g'ri JSON ga (deployda yo'qolmaydi)
-  if (category === "works") return toDataUrl(buf, ext);
   return `/api/media/${category}/${filename}`;
 }
 
@@ -249,5 +249,23 @@ export function migrateLegacyUploads() {
 
   if (changed) {
     console.log(`[media] ${changed} ta ma'lumot faylida rasm URL lari yangilandi (uploads → data/media)`);
+  }
+
+  cleanupWorkMediaDiskFiles();
+}
+
+/** Asar rasmlari JSON da saqlanadi — diskdagi dublikat fayllarni o'chiradi */
+function cleanupWorkMediaDiskFiles() {
+  const dir = path.join(MEDIA_ROOT, "works");
+  if (!fs.existsSync(dir)) return;
+  let removed = 0;
+  for (const f of fs.readdirSync(dir)) {
+    try {
+      fs.unlinkSync(path.join(dir, f));
+      removed++;
+    } catch { /* ignore */ }
+  }
+  if (removed) {
+    console.log(`[media] works/ papkasidan ${removed} ta dublikat fayl o'chirildi (rasmlar JSON da)`);
   }
 }
