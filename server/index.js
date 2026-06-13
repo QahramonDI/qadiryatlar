@@ -59,7 +59,8 @@ import {
 import {
   resolveMediaFilePath,
   migrateLegacyUploads,
-  saveMedia,
+  saveOptimizedMedia,
+  optimizeImageBase64,
   deleteMediaByUrl,
   MEDIA_ROOT,
   LEGACY_UPLOADS_ROOT,
@@ -96,6 +97,19 @@ fs.mkdirSync(WORKS_UPLOAD_DIR, { recursive: true });
 migrateLegacyUploads();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "qk-dev-secret-change-in-production";
+
+async function optimizeAvatarDataUrl(avatarImg) {
+  if (!avatarImg) return null;
+  if (!String(avatarImg).startsWith("data:image/")) return avatarImg;
+  const optimized = await optimizeImageBase64(avatarImg, {
+    maxBytes: 3 * 1024 * 1024,
+    maxWidth: 256,
+    maxHeight: 256,
+    quality: 76,
+    fit: "cover",
+  });
+  return optimized.dataUrl;
+}
 
 const LEVELS = [
   { min: 0, name: "Yangi sayohatchi", emoji: "🌱" },
@@ -222,7 +236,7 @@ app.post("/api/auth/register", async (req, res) => {
     const name = String(req.body.name || "O'quvchi").trim();
     const grade = +req.body.grade || 3;
     const avatar = req.body.avatar || "🧒";
-    const avatarImg = req.body.avatarImg || null;
+    const avatarImg = await optimizeAvatarDataUrl(req.body.avatarImg || null);
 
     if (!/^[a-z0-9_.]{3,20}$/.test(username)) {
       return res.status(400).json({ error: "Login 3–20 ta lotin harf/raqamdan iborat bo'lsin." });
@@ -241,6 +255,8 @@ app.post("/api/auth/register", async (req, res) => {
     const token = jwt.sign({ id: userId, username }, JWT_SECRET, { expiresIn: "30d" });
     res.json({ token, user: userToClient(user, progress) });
   } catch (e) {
+    if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Profil rasmi formati noto'g'ri." });
+    if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Profil rasmi 3 MB dan kichik bo'lsin." });
     console.error(e);
     res.status(500).json({ error: "Ro'yxatdan o'tishda xatolik" });
   }
@@ -270,25 +286,35 @@ app.get("/api/auth/me", authMiddleware, (req, res) => {
   res.json(userToClient(user, getProgress(user.id)));
 });
 
-app.put("/api/progress", authMiddleware, (req, res) => {
-  const user = resolveStudentUser(req.user);
-  if (!user) return res.status(401).json({ error: "Sessiya eskirgan — qayta kiring" });
-  const p = req.body || {};
-  saveProgress(user.id, p);
-  if (p.avatarImg !== undefined && user.avatar_upload_blocked && p.avatarImg && p.avatarImg !== user.avatar_img) {
-    return res.status(403).json({
-      error: "Profil rasmini hozircha o'zgartira olmaysiz. Admin ogohlantirishini o'qing va tasdiqlang.",
-    });
+app.put("/api/progress", authMiddleware, async (req, res) => {
+  try {
+    const user = resolveStudentUser(req.user);
+    if (!user) return res.status(401).json({ error: "Sessiya eskirgan — qayta kiring" });
+    const p = { ...(req.body || {}) };
+    if (p.avatarImg !== undefined && user.avatar_upload_blocked && p.avatarImg && p.avatarImg !== user.avatar_img) {
+      return res.status(403).json({
+        error: "Profil rasmini hozircha o'zgartira olmaysiz. Admin ogohlantirishini o'qing va tasdiqlang.",
+      });
+    }
+    if (p.avatarImg !== undefined) {
+      p.avatarImg = p.avatarImg ? await optimizeAvatarDataUrl(p.avatarImg) : null;
+    }
+    saveProgress(user.id, p);
+    if (p.name || p.grade || p.avatar || p.avatarImg !== undefined) {
+      updateUserProfile(user.id, {
+        name: p.name || user.name,
+        grade: p.grade || user.grade,
+        avatar: p.avatar || user.avatar,
+        avatarImg: p.avatarImg !== undefined ? p.avatarImg : user.avatar_img,
+      });
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Profil rasmi formati noto'g'ri." });
+    if (e.message === "IMAGE_TOO_LARGE") return res.status(400).json({ error: "Profil rasmi 3 MB dan kichik bo'lsin." });
+    console.error(e);
+    res.status(500).json({ error: "Profilni saqlashda xatolik" });
   }
-  if (p.name || p.grade || p.avatar || p.avatarImg !== undefined) {
-    updateUserProfile(user.id, {
-      name: p.name || user.name,
-      grade: p.grade || user.grade,
-      avatar: p.avatar || user.avatar,
-      avatarImg: p.avatarImg !== undefined ? p.avatarImg : user.avatar_img,
-    });
-  }
-  res.json({ ok: true });
 });
 
 app.post("/api/auth/warning/dismiss", authMiddleware, (req, res) => {
@@ -626,9 +652,9 @@ app.get("/api/teacher/works/:id", teacherAuthMiddleware, (req, res) => {
   res.json({ work: null, kind: "textbook" });
 });
 
-app.put("/api/teacher/works/:id", teacherAuthMiddleware, (req, res) => {
+app.put("/api/teacher/works/:id", teacherAuthMiddleware, async (req, res) => {
   try {
-    const result = updateWork(req.params.id, req.body || {});
+    const result = await updateWork(req.params.id, req.body || {});
     res.json({ ok: true, ...result });
   } catch (e) {
     if (e.message === "INVALID_IMAGE") return res.status(400).json({ error: "Rasm formati noto'g'ri." });
@@ -638,9 +664,9 @@ app.put("/api/teacher/works/:id", teacherAuthMiddleware, (req, res) => {
   }
 });
 
-app.post("/api/teacher/works", teacherAuthMiddleware, (req, res) => {
+app.post("/api/teacher/works", teacherAuthMiddleware, async (req, res) => {
   try {
-    const work = createCustomWork(req.body || {});
+    const work = await createCustomWork(req.body || {});
     res.json(work);
   } catch (e) {
     if (e.message === "WORK_EXISTS") return res.status(409).json({ error: "Bu ID band" });
@@ -851,7 +877,7 @@ app.get("/api/ijod", (req, res) => {
   res.json(listIjod({ grade, valueId, sortBy, userId: user?.id ?? null }));
 });
 
-app.post("/api/ijod", authMiddleware, (req, res) => {
+app.post("/api/ijod", authMiddleware, async (req, res) => {
   try {
     const user = resolveStudentUser(req.user);
     if (!user) {
@@ -870,7 +896,12 @@ app.post("/api/ijod", authMiddleware, (req, res) => {
       return res.status(400).json({ error: "Rasm yuklang (JPEG yoki PNG)" });
     }
 
-    const imageUrl = saveMedia("ijod", `${user.id}_${Date.now()}`, imageBase64, 5 * 1024 * 1024);
+    const imageUrl = await saveOptimizedMedia("ijod", `${user.id}_${Date.now()}`, imageBase64, {
+      maxBytes: 5 * 1024 * 1024,
+      maxWidth: 1200,
+      maxHeight: 1200,
+      quality: 78,
+    });
 
     const item = createIjod({
       user_id: user.id,

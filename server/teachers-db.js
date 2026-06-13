@@ -33,24 +33,34 @@ function nextId(list) {
 export function ensureBootstrapAdmin() {
   const db = loadTeachersDb();
   let admin = db.teachers.find((t) => t.username.toLowerCase() === "madina");
-  const hash = bcrypt.hashSync("9699", 10);
+  let changed = false;
   if (!admin) {
     admin = {
       id: nextId(db.teachers),
       username: "madina",
-      password_hash: hash,
+      password_hash: bcrypt.hashSync("9699", 10),
       name: "Madinaxon Abdullayeva",
       school: "Farg'ona davlat universiteti",
       is_admin: true,
       created_at: new Date().toISOString(),
     };
     db.teachers.push(admin);
+    changed = true;
   } else {
-    admin.password_hash = hash;
-    admin.is_admin = true;
-    admin.name = admin.name || "Madinaxon Abdullayeva";
+    if (!bcrypt.compareSync("9699", admin.password_hash)) {
+      admin.password_hash = bcrypt.hashSync("9699", 10);
+      changed = true;
+    }
+    if (!admin.is_admin) {
+      admin.is_admin = true;
+      changed = true;
+    }
+    if (!admin.name) {
+      admin.name = "Madinaxon Abdullayeva";
+      changed = true;
+    }
   }
-  saveTeachersDb(db);
+  if (changed) saveTeachersDb(db);
   return admin;
 }
 

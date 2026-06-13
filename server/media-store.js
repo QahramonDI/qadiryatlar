@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -56,6 +57,41 @@ function toDataUrl(buf, ext) {
   return `data:image/${mime};base64,${buf.toString("base64")}`;
 }
 
+export async function optimizeImageBase64(imageBase64, {
+  maxBytes = 6 * 1024 * 1024,
+  maxWidth = 1200,
+  maxHeight = 1200,
+  quality = 78,
+  format = "jpeg",
+  fit = "inside",
+  background = "#ffffff",
+} = {}) {
+  const { buf } = parseImageBase64(imageBase64, maxBytes);
+  const pipeline = sharp(buf, { limitInputPixels: 40_000_000 })
+    .rotate()
+    .resize({
+      width: maxWidth,
+      height: maxHeight,
+      fit,
+      withoutEnlargement: true,
+    });
+
+  try {
+    if (format === "webp") {
+      const out = await pipeline.webp({ quality }).toBuffer();
+      return { buf: out, ext: "webp", dataUrl: toDataUrl(out, "webp") };
+    }
+
+    const out = await pipeline
+      .flatten({ background })
+      .jpeg({ quality, mozjpeg: true })
+      .toBuffer();
+    return { buf: out, ext: "jpg", dataUrl: toDataUrl(out, "jpg") };
+  } catch {
+    throw new Error("INVALID_IMAGE");
+  }
+}
+
 function filePathToDataUrl(category, filename) {
   const fp = resolveMediaFilePath(category, filename);
   if (!fp) return null;
@@ -70,6 +106,16 @@ function filePathToDataUrl(category, filename) {
 
 export function saveMedia(category, basename, imageBase64, maxBytes = 6 * 1024 * 1024) {
   const { buf, ext } = parseImageBase64(imageBase64, maxBytes);
+  const safeBase = String(basename).replace(/[^a-zA-Z0-9_-]/g, "") || "image";
+  const filename = `${safeBase}.${ext}`;
+  const dir = path.join(MEDIA_ROOT, category);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, filename), buf);
+  return `/api/media/${category}/${filename}`;
+}
+
+export async function saveOptimizedMedia(category, basename, imageBase64, options = {}) {
+  const { buf, ext } = await optimizeImageBase64(imageBase64, options);
   const safeBase = String(basename).replace(/[^a-zA-Z0-9_-]/g, "") || "image";
   const filename = `${safeBase}.${ext}`;
   const dir = path.join(MEDIA_ROOT, category);

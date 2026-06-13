@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { saveMedia, deleteMediaByUrl, DATA_DIR } from "./media-store.js";
+import { saveOptimizedMedia, deleteMediaByUrl, DATA_DIR } from "./media-store.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(DATA_DIR, "custom-works.json");
@@ -217,7 +217,12 @@ function normalizeWork(payload, existing = null) {
 }
 
 export function saveWorkImage(workId, imageBase64) {
-  return saveMedia("works", workId, imageBase64, 5 * 1024 * 1024);
+  return saveOptimizedMedia("works", workId, imageBase64, {
+    maxBytes: 5 * 1024 * 1024,
+    maxWidth: 1200,
+    maxHeight: 900,
+    quality: 78,
+  });
 }
 
 function hasNewWorkImage(payload) {
@@ -245,7 +250,7 @@ export function getWorkOverride(id) {
   return readDb().overrides[id] || null;
 }
 
-export function createCustomWork(payload) {
+export async function createCustomWork(payload) {
   const db = readDb();
   const id = payload.id?.trim() || slugId(payload.title);
   if (db.works.some((w) => w.id === id)) throw new Error("WORK_EXISTS");
@@ -256,7 +261,7 @@ export function createCustomWork(payload) {
   if (!work.crossword.length) work.crossword = generateCrosswordForWork(work);
 
   if (hasNewWorkImage(payload)) {
-    work.imageUrl = saveWorkImage(id, payload.imageBase64);
+    work.imageUrl = await saveWorkImage(id, payload.imageBase64);
   }
 
   db.works.unshift(work);
@@ -264,7 +269,7 @@ export function createCustomWork(payload) {
   return work;
 }
 
-export function updateWork(id, payload) {
+export async function updateWork(id, payload) {
   const db = readDb();
   const customIdx = db.works.findIndex((w) => w.id === id);
 
@@ -274,7 +279,9 @@ export function updateWork(id, payload) {
     if (payload.regenerateTests) work.tests = generateTestsForWork(work);
     if (payload.regenerateCrossword) work.crossword = generateCrosswordForWork(work);
     if (hasNewWorkImage(payload)) {
-      work.imageUrl = saveWorkImage(id, payload.imageBase64);
+      const prevImageUrl = existing.imageUrl;
+      work.imageUrl = await saveWorkImage(id, payload.imageBase64);
+      if (prevImageUrl && prevImageUrl !== work.imageUrl) deleteMediaByUrl(prevImageUrl);
     } else if (!work.imageUrl && existing.imageUrl) {
       work.imageUrl = existing.imageUrl;
     }
@@ -313,7 +320,9 @@ export function updateWork(id, payload) {
     patch.crossword = generateCrosswordForWork({ id, ...prev, ...patch });
   }
   if (hasNewWorkImage(payload)) {
-    patch.imageUrl = saveWorkImage(id, payload.imageBase64);
+    const prevImageUrl = prev.imageUrl;
+    patch.imageUrl = await saveWorkImage(id, payload.imageBase64);
+    if (prevImageUrl && prevImageUrl !== patch.imageUrl) deleteMediaByUrl(prevImageUrl);
   } else if (prev.imageUrl) {
     patch.imageUrl = prev.imageUrl;
   } else if (patch.imageUrl === null) {
