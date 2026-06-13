@@ -70,8 +70,6 @@ function filePathToDataUrl(category, filename) {
 
 export function saveMedia(category, basename, imageBase64, maxBytes = 6 * 1024 * 1024) {
   const { buf, ext } = parseImageBase64(imageBase64, maxBytes);
-  // Asar rasmlari faqat JSON da (data URL) — diskka dublikat yozilmaydi
-  if (category === "works") return toDataUrl(buf, ext);
   const safeBase = String(basename).replace(/[^a-zA-Z0-9_-]/g, "") || "image";
   const filename = `${safeBase}.${ext}`;
   const dir = path.join(MEDIA_ROOT, category);
@@ -129,7 +127,7 @@ function migrateApiMediaUrl(url) {
   if (parts.length !== 2) return url;
   const [category, filename] = parts;
   if (category !== "works") return url;
-  return filePathToDataUrl(category, filename) || url;
+  return resolveMediaFilePath(category, filename) ? url : filePathToDataUrl(category, filename) || url;
 }
 
 function migrateUploadUrl(url) {
@@ -139,6 +137,15 @@ function migrateUploadUrl(url) {
   const [category, filename] = parts;
   const newUrl = copyLegacyFileToMedia(category, filename);
   return newUrl || url;
+}
+
+function migrateDataUrlToMedia(category, basename, imageBase64) {
+  if (!String(imageBase64 || "").startsWith("data:image/")) return imageBase64;
+  try {
+    return saveMedia(category, basename, imageBase64);
+  } catch {
+    return imageBase64;
+  }
 }
 
 function readJsonFile(filePath, fallback) {
@@ -175,6 +182,12 @@ export function migrateLegacyUploads() {
           work.imageUrl = next;
           worksChanged = true;
         }
+      } else if (work.imageUrl?.startsWith("data:image/")) {
+        const next = migrateDataUrlToMedia("works", work.id || work.title || "work", work.imageUrl);
+        if (next !== work.imageUrl) {
+          work.imageUrl = next;
+          worksChanged = true;
+        }
       }
     }
     for (const id of Object.keys(worksDb.overrides || {})) {
@@ -187,6 +200,12 @@ export function migrateLegacyUploads() {
         }
       } else if (patch?.imageUrl?.startsWith("/api/media/works/")) {
         const next = migrateApiMediaUrl(patch.imageUrl);
+        if (next !== patch.imageUrl) {
+          patch.imageUrl = next;
+          worksChanged = true;
+        }
+      } else if (patch?.imageUrl?.startsWith("data:image/")) {
+        const next = migrateDataUrlToMedia("works", id, patch.imageUrl);
         if (next !== patch.imageUrl) {
           patch.imageUrl = next;
           worksChanged = true;
@@ -251,21 +270,4 @@ export function migrateLegacyUploads() {
     console.log(`[media] ${changed} ta ma'lumot faylida rasm URL lari yangilandi (uploads → data/media)`);
   }
 
-  cleanupWorkMediaDiskFiles();
-}
-
-/** Asar rasmlari JSON da saqlanadi — diskdagi dublikat fayllarni o'chiradi */
-function cleanupWorkMediaDiskFiles() {
-  const dir = path.join(MEDIA_ROOT, "works");
-  if (!fs.existsSync(dir)) return;
-  let removed = 0;
-  for (const f of fs.readdirSync(dir)) {
-    try {
-      fs.unlinkSync(path.join(dir, f));
-      removed++;
-    } catch { /* ignore */ }
-  }
-  if (removed) {
-    console.log(`[media] works/ papkasidan ${removed} ta dublikat fayl o'chirildi (rasmlar JSON da)`);
-  }
 }

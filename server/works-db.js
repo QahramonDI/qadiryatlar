@@ -220,6 +220,10 @@ export function saveWorkImage(workId, imageBase64) {
   return saveMedia("works", workId, imageBase64, 5 * 1024 * 1024);
 }
 
+function hasNewWorkImage(payload) {
+  return String(payload?.imageBase64 || "").startsWith("data:image/");
+}
+
 export function getCatalogPublic() {
   const db = readDb();
   return {
@@ -251,7 +255,7 @@ export function createCustomWork(payload) {
   if (!work.tests.length) work.tests = generateTestsForWork(work);
   if (!work.crossword.length) work.crossword = generateCrosswordForWork(work);
 
-  if (payload.imageBase64) {
+  if (hasNewWorkImage(payload)) {
     work.imageUrl = saveWorkImage(id, payload.imageBase64);
   }
 
@@ -269,7 +273,7 @@ export function updateWork(id, payload) {
     let work = normalizeWork(payload, existing);
     if (payload.regenerateTests) work.tests = generateTestsForWork(work);
     if (payload.regenerateCrossword) work.crossword = generateCrosswordForWork(work);
-    if (payload.imageBase64) {
+    if (hasNewWorkImage(payload)) {
       work.imageUrl = saveWorkImage(id, payload.imageBase64);
     } else if (!work.imageUrl && existing.imageUrl) {
       work.imageUrl = existing.imageUrl;
@@ -308,7 +312,7 @@ export function updateWork(id, payload) {
   if (payload.regenerateCrossword) {
     patch.crossword = generateCrosswordForWork({ id, ...prev, ...patch });
   }
-  if (payload.imageBase64) {
+  if (hasNewWorkImage(payload)) {
     patch.imageUrl = saveWorkImage(id, payload.imageBase64);
   } else if (prev.imageUrl) {
     patch.imageUrl = prev.imageUrl;
