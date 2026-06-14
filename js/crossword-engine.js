@@ -233,7 +233,19 @@ function buildCrosswordLayout(rawEntries, maxWords = 8) {
     pending.length = 0;
     pending.push(...retry);
   }
-  const unplaced = pending;
+
+  function forcePlaceWord(w) {
+    const rows = Object.keys(grid).map((k) => +k.split(",")[0]);
+    const r = rows.length ? Math.max(...rows) + 2 : 0;
+    const c = 0;
+    const wordIdx = placed.length;
+    const colorIdx = wordIdx % CW_PALETTE.length;
+    for (let i = 0; i < w.letters.length; i++) markCell(r, c + i, w.letters[i], wordIdx, "h");
+    placed.push({ ...w, r, c, dir: "h", colorIdx });
+  }
+
+  while (pending.length) forcePlaceWord(pending.shift());
+  const unplaced = [];
 
   placed.forEach((p, i) => {
     p.num = i + 1;
