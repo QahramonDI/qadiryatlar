@@ -4321,17 +4321,17 @@ body.locked { overflow: hidden; }
   font-family: var(--font-work-read);
   font-weight: 400;
   font-size: clamp(1.12rem, 2.4vw, 1.42rem);
-  line-height: 1.85;
+  line-height: 1.75;
   color: var(--ink);
   letter-spacing: 0.02em;
 }
-.work-read-text p { margin-bottom: 1.2em; }
+.work-read-text p { margin-bottom: 0.95em; }
 .work-read-text p:last-child { margin-bottom: 0; }
 .work-read-text.work-text-poem { text-align: center; }
 .work-read-missing { text-align: center; padding: 20px 0; }
-.work-poem-stanza { margin-bottom: 1.6em; }
+.work-poem-stanza { margin-bottom: 1.05em; }
 .work-poem-stanza:last-child { margin-bottom: 0; }
-.work-poem-stanza p { margin: 0; line-height: 1.8; }
+.work-poem-stanza p { margin: 0; line-height: 1.7; }
 .work-read-full {
   width: 100%;
   margin: 14px 0 6px;
